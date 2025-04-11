@@ -1,0 +1,6 @@
+{
+  "appTitle": "grab_umh",
+  "@appTitle": {
+    "description": "The title of the application"
+  }
+}
