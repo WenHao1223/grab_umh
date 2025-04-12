@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:grab_umh/src/utils/constants/colors.dart';
 import '../../settings/settings_view.dart';
 import '../../utils/constants/sizes.dart';
 
@@ -54,7 +55,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const Text(
-                  'Welcome Back!',
+                  'Your everyday everything app.',
                   style: TextStyle(
                     fontSize: GCrabSizes.fontSizeLg,
                   ),
@@ -106,6 +107,18 @@ class _LoginPageState extends State<LoginPage> {
                             print('Email: ${_emailController.text}');
                             print('Password: ${_passwordController.text}');
                           }
+                        },
+                      ),
+
+                      const GCrabSpacing.height(GCrabSizes.gridViewSpacing),
+
+                      // Sign Up Button
+                      GCrabOutlinedButton(
+                        height: 50,
+                        text: 'New to GCrab? Sign up!',
+                        onPressed: () {
+                          // TODO: Implement navigation to sign up page
+                          print('Navigate to Sign Up');
                         },
                       ),
                     ],
@@ -212,6 +225,39 @@ class GCrabPrimaryButton extends StatelessWidget {
         child: Text(
           text,
           style: const TextStyle(fontSize: GCrabSizes.fontSizeMd),
+        ),
+      ),
+    );
+  }
+}
+
+/// Custom Outlined Button
+class GCrabOutlinedButton extends StatelessWidget {
+  final String text;
+  final VoidCallback onPressed;
+  final double height;
+
+  const GCrabOutlinedButton({
+    super.key,
+    required this.text,
+    required this.onPressed,
+    this.height = GCrabSizes.buttonHeight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: GCrabColors.darkGrey),
+        ),
+        onPressed: onPressed,
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: GCrabSizes.fontSizeMd,
+          ),
         ),
       ),
     );
