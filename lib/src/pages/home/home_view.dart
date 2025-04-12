@@ -28,7 +28,7 @@ class _HomePageState extends State<HomePage> {
   //tts
   final FlutterTts _flutterTts = FlutterTts();
 
-  String _selectedLanguage = 'English';
+  final String _selectedLanguage = 'English';
   final Map<String, String> _langCodeMap = {
     'English': 'en-US',
     'Malay': 'ms-MY',

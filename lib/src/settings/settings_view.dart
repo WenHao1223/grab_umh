@@ -21,11 +21,14 @@ class SettingsView extends StatelessWidget {
         Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
       }
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error logging out: $e')),
-        );
-      }
+      // Schedule error message for next frame
+      Future.microtask(() {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error logging out: $e')),
+          );
+        }
+      });
     }
   }
 
