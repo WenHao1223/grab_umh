@@ -11,6 +11,7 @@ import 'package:grab_umh/src/modules/directions_model.dart';
 import 'package:grab_umh/src/modules/directions_repository.dart';
 import 'package:grab_umh/src/settings/settings_view.dart';
 import 'package:grab_umh/src/utils/constants/colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:flutter_tts/flutter_tts.dart'; //tts
 
@@ -46,6 +47,9 @@ class _HomePageState extends State<HomePage> {
   List<RideModel>? _rides;
   // Add this to store pending rides
   List<RideModel> _pendingRides = [];
+
+  // Add this field to store current user
+  final String? _currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
   static const CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(5.285153, 100.456238),
@@ -247,51 +251,98 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _rideAccepted(RideModel ride) async {
-    // Remove the accepted ride from pending rides
-    _pendingRides.removeAt(0);
-    
-    // Create origin marker from ride start location
-    final origin = Marker(
-      markerId: const MarkerId('origin'),
-      infoWindow: InfoWindow(title: ride.locations.start.name),
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-      position: LatLng(
-        ride.locations.start.location.lat,
-        ride.locations.start.location.lng,
-      ),
-    );
+    try {
+      if (_currentUserId == null) {
+        throw 'No authenticated user found';
+      }
 
-    // Create destination marker from ride drop location
-    final destination = Marker(
-      markerId: const MarkerId('destination'),
-      infoWindow: InfoWindow(title: ride.locations.drop.name),
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-      position: LatLng(
-        ride.locations.drop.location.lat,
-        ride.locations.drop.location.lng,
-      ),
-    );
+      // First fetch driver details from Firestore
+      final driverDoc = await FirebaseFirestore.instance
+          .collection('drivers')
+          .doc(_currentUserId)
+          .get();
 
-    // Get directions between origin and destination
-    final directionsRepo = DirectionsRepository(dio: Dio());
-    final directions = await directionsRepo.getDirections(
-      origin: origin.position,
-      destination: destination.position,
-    );
+      if (!driverDoc.exists) {
+        throw 'Driver profile not found';
+      }
 
-    setState(() {
-      _origin = origin;
-      _destination = destination;
-      _info = directions;
-    });
+      final driverData = driverDoc.data()!;
+      final carDetails = driverData['car'] as Map<String, dynamic>;
 
-    // Animate camera to show both markers
-    if (_googleMapController != null && _info != null) {
-      _googleMapController!.animateCamera(
-        CameraUpdate.newLatLngBounds(_info!.bounds, 100),
+      // Update Firestore with both driver and car details
+      await FirebaseFirestore.instance
+          .collection('rides')
+          .doc(ride.rideId)
+          .update({
+        'details.status': 'picking',
+        'driverDetails': {
+          'id':  _currentUserId,
+          'name': driverData['name'],
+          'phone': driverData['phone'],
+          'car': {
+            'name': carDetails['name'],
+            'color': carDetails['color'],
+            'plate': carDetails['plate'],
+          },
+        },
+      });
+
+      // Remove the accepted ride from pending rides
+      _pendingRides.removeAt(0);
+      
+      // Create origin marker from ride start location
+      final origin = Marker(
+        markerId: const MarkerId('origin'),
+        infoWindow: InfoWindow(title: ride.locations.start.name),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+        position: LatLng(
+          ride.locations.start.location.lat,
+          ride.locations.start.location.lng,
+        ),
       );
+
+      // Create destination marker from ride drop location
+      final destination = Marker(
+        markerId: const MarkerId('destination'),
+        infoWindow: InfoWindow(title: ride.locations.drop.name),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+        position: LatLng(
+          ride.locations.drop.location.lat,
+          ride.locations.drop.location.lng,
+        ),
+      );
+
+      // Get directions between origin and destination
+      final directionsRepo = DirectionsRepository(dio: Dio());
+      final directions = await directionsRepo.getDirections(
+        origin: origin.position,
+        destination: destination.position,
+      );
+
+      setState(() {
+        _origin = origin;
+        _destination = destination;
+        _info = directions;
+      });
+
+      // Animate camera to show both markers
+      if (_googleMapController != null && _info != null) {
+        _googleMapController!.animateCamera(
+          CameraUpdate.newLatLngBounds(_info!.bounds, 100),
+        );
+      }
+      _speakRideAccepted(ride);
+    } catch (e) {
+      // Show error to user
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to accept ride: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
-    _speakRideAccepted(ride);
   }
 
   //tts
