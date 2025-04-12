@@ -75,7 +75,7 @@ class _HomePageState extends State<HomePage> {
           .collection('rides')
           .where('details.status', isEqualTo: 'pending')
           .get();
-        
+
       final pendingRides = ridesSnapshot.docs.map((doc) {
         final data = doc.data();
         print("Data: ");
@@ -94,7 +94,7 @@ class _HomePageState extends State<HomePage> {
           if (mounted) {
             // Check if widget is still mounted
             _showRideAlert(pendingRides.first);
-            _speakRideDetails(pendingRides.first); //tts
+            _speakRideDetails(pendingRides.first); // tts
           }
         });
       }
@@ -161,7 +161,11 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 8),
                     Text('Fare: RM ${ride.details.fare.toStringAsFixed(2)}'),
                     const SizedBox(height: 8),
+                    Text('Pick-up: ${ride.locations.start.name}'),
+                    const SizedBox(height: 8),
                     Text('Drop-off: ${ride.locations.drop.name}'),
+                    const SizedBox(height: 8),
+                    Text('No of pax: ${ride.details.pax}'),
                     const SizedBox(height: 16),
                     ValueListenableBuilder<double>(
                       valueListenable: _progress,
@@ -294,15 +298,15 @@ class _HomePageState extends State<HomePage> {
     switch (_selectedLanguage) {
       case 'Malay':
         message =
-            "Anda ada permintaan perjalanan baharu. Penumpang ke ${ride.locations.drop.name}. Jarak: ${ride.details.distance}. Harga: ${ride.details.fare.toStringAsFixed(2)} ringgit. Adakah anda ingin terima?";
+            "Anda ada permintaan perjalanan baharu. Lokasi pengambilan di ${ride.locations.start.name}, dan perturunan di ${ride.locations.drop.name}. Bilangan penumpang: ${ride.details.pax}. Jarak: ${ride.details.distance} kilometer. Harga: ${ride.details.fare.toStringAsFixed(2)} ringgit. Adakah anda ingin terima?";
         break;
       case 'Chinese':
         message =
-            "您有一个新的订单请求。目的地是${ride.locations.drop.name}。距离是${ride.details.distance}。费用是${ride.details.fare.toStringAsFixed(2)}令吉。您要接受吗？";
+            "您有一个新的订单请求。上车地点是${ride.locations.start.name}，下车地点是${ride.locations.drop.name}。乘客人数：${ride.details.pax}人。距离是${ride.details.distance}公里。费用是${ride.details.fare.toStringAsFixed(2)}令吉。您要接受吗？";
         break;
       default:
         message =
-            "You have a new ride request. Destination: ${ride.locations.drop.name}. Distance: ${ride.details.distance}. Fare: ${ride.details.fare.toStringAsFixed(2)} ringgit. Do you want to accept?";
+            "You have a new ride request. Pick-up at ${ride.locations.start.name}, and drop-off at ${ride.locations.drop.name}. Number of passengers: ${ride.details.pax}. Distance: ${ride.details.distance} kilometres. Fare: ${ride.details.fare.toStringAsFixed(2)} ringgit. Do you want to accept?";
     }
 
     await _flutterTts.speak(message);
@@ -318,15 +322,15 @@ class _HomePageState extends State<HomePage> {
     switch (_selectedLanguage) {
       case 'Malay':
         message =
-            "Anda telah menerima permintaan perjalanan. Penumpang ke ${ride.locations.drop.name}. Jarak: ${ride.details.distance}. Harga: ${ride.details.fare.toStringAsFixed(2)} ringgit.";
+            "Anda telah menerima permintaan perjalanan. Lokasi pengambilan di ${ride.locations.start.name}, dan penurunan di ${ride.locations.drop.name}. Bilangan penumpang: ${ride.details.pax}. Jarak: ${ride.details.distance} kilometer. Harga: ${ride.details.fare.toStringAsFixed(2)} ringgit.";
         break;
       case 'Chinese':
         message =
-            "您已接受新的订单请求。目的地是${ride.locations.drop.name}。距离是${ride.details.distance}。费用是${ride.details.fare.toStringAsFixed(2)}令吉。";
+            "您已接受新的订单请求。上车地点是${ride.locations.start.name}，下车地点是${ride.locations.drop.name}。乘客人数：${ride.details.pax}人。距离是${ride.details.distance}公里。费用是${ride.details.fare.toStringAsFixed(2)}令吉。";
         break;
       default:
         message =
-            "You have accepted the ride request. Destination: ${ride.locations.drop.name}. Distance: ${ride.details.distance}. Fare: ${ride.details.fare.toStringAsFixed(2)} ringgit.";
+            "You have accepted the ride request. Pick-up at ${ride.locations.start.name}, drop-off at ${ride.locations.drop.name}. Number of passengers: ${ride.details.pax}. Distance: ${ride.details.distance} kilometres. Fare: ${ride.details.fare.toStringAsFixed(2)} ringgit.";
     }
 
     await _flutterTts.speak(message);
@@ -343,15 +347,14 @@ class _HomePageState extends State<HomePage> {
     switch (_selectedLanguage) {
       case 'Malay':
         message =
-            "Anda telah menolak permintaan perjalanan. Penumpang ke ${ride.locations.drop.name}. Jarak: ${ride.details.distance}. Harga: ${ride.details.fare.toStringAsFixed(2)} ringgit.";
+            "Anda telah menolak permintaan perjalanan ke ${ride.locations.drop.name}.";
         break;
       case 'Chinese':
-        message =
-            "您已拒绝新的订单请求。目的地是${ride.locations.drop.name}。距离是${ride.details.distance}。费用是${ride.details.fare.toStringAsFixed(2)}令吉。";
+        message = "您已拒绝新的订单请求。目的地是${ride.locations.drop.name}。";
         break;
       default:
         message =
-            "You have rejected the ride request. Destination: ${ride.locations.drop.name}. Distance: ${ride.details.distance}. Fare: ${ride.details.fare.toStringAsFixed(2)} ringgit.";
+            "You have rejected the ride request to ${ride.locations.drop.name}.";
     }
 
     await _flutterTts.speak(message);
