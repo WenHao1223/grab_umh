@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math' show min, pi;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:grab_umh/src/models/ride_model.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -11,14 +9,11 @@ import 'package:grab_umh/src/modules/directions_model.dart';
 import 'package:grab_umh/src/modules/directions_repository.dart';
 import 'package:grab_umh/src/settings/settings_view.dart';
 import 'package:grab_umh/src/stt/speech_transcriber';
-import 'package:grab_umh/src/stt/speech_transcriber';
 import 'package:grab_umh/src/utils/constants/colors.dart';
 import 'package:grab_umh/src/utils/api/intent_classifier_api.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:flutter_tts/flutter_tts.dart'; //tts
-
-import 'package:grab_umh/src/pages/chat/chat.dart';
 
 import 'package:grab_umh/src/pages/chat/chat.dart';
 
@@ -35,10 +30,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final SpeechTranscriber speechTranscriber = SpeechTranscriber();
-  String? _recognizedText;
-
-  final SpeechTranscriber speechTranscriber = SpeechTranscriber();
-  String? _recognizedText;
 
   //tts
   final FlutterTts _flutterTts = FlutterTts();
@@ -57,7 +48,6 @@ class _HomePageState extends State<HomePage> {
   Timer? _timer;
   // Change _progress to be a ValueNotifier
   final ValueNotifier<double> _progress = ValueNotifier(1.0);
-  List<RideModel>? _rides;
   final driverResponse = "Yes, I can accept the ride";
 
   // Add this to store pending rides
