@@ -41,6 +41,8 @@ class _HomePageState extends State<HomePage> {
     'Chinese': 'zh-CN',
   };
 
+  late String? detectedIntent;
+
   GoogleMapController? _googleMapController;
   Marker? _origin;
   Marker? _destination;
@@ -94,12 +96,6 @@ class _HomePageState extends State<HomePage> {
             // Check if widget is still mounted
             _showRideAlert(_pendingRides.first);
             _speakRideDetails(_pendingRides.first); //tts
-
-            // TODO: change based on the intent @mjlee01
-            final detectedIntent = await detectIntent(driverResponse);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Detected intent: $detectedIntent')),
-            );
           }
         });
       }
@@ -152,19 +148,26 @@ class _HomePageState extends State<HomePage> {
     );
 
     final SpeechTranscriber speech = SpeechTranscriber();
-    speech.startListening().then((command) {
+    speech.startListening().then((command) async {
       if (!mounted) return;
-      final normalized = command?.toLowerCase().trim() ?? "";
+      // final normalized = command?.toLowerCase().trim() ?? "";
+      detectedIntent = await detectIntent(command ?? '');
 
-      if (normalized.contains('accept')) {
+      if (detectedIntent == 'accept_order') {
+        // if (normalized.contains('accept')) {
         _timer?.cancel();
         _rideAccepted(ride);
         Navigator.of(context).pop();
-      } else if (normalized.contains('skip') || normalized.contains('reject')) {
+      } else if (detectedIntent == 'reject_order' ||
+          detectedIntent == 'stop_request') {
+        // } else if (normalized.contains('skip') || normalized.contains('reject')) {
         _timer?.cancel();
         _speakRideRejected(ride);
         Navigator.of(context).pop();
       }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Detected intent: $detectedIntent')),
+      );
     }).catchError((e) {
       debugPrint('Speech error: $e');
     });
