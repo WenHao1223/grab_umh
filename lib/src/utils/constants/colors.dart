@@ -10,13 +10,13 @@ import 'package:flutter/material.dart';
 
 class GCrabColors {
   // App theme colors
-  static const Color primary = Color(0xFF4CAF50);
+  static const Color primary = Color.fromRGBO(88, 188, 107, 1);
   static const Color secondary = Color(0xFFffc107);
   static const Color accent = Color(0xFFcbc3e3);
 
   // Text colors
   static const Color textPrimary = Color(0xFF333333);
-  static const Color textSecondary = Color(0xFF6C757D);
+  static const Color textSecondary = Color.fromRGBO(197, 197, 197, 1);
   static const Color textWhite = Colors.white;
 
   // Background colors
@@ -29,12 +29,12 @@ class GCrabColors {
   static Color darkContainer = Color(0xFF1A1A1A);
 
   // Button colors
-  static const Color buttonPrimary = Color(0xFF4CAF50);
+  static const Color buttonPrimary = Color.fromRGBO(88, 188, 107, 1);
   static const Color buttonSecondary = Color(0xFFffc107);
   static const Color buttonDisabled = Color(0xFFC4C4C4);
 
   // Border colors
-  static const Color borderPrimary = Color(0xFF4CAF50);
+  static const Color borderPrimary = Color.fromRGBO(88, 188, 107, 1);
   static const Color borderSecondary = Color(0xFFffc107);
   static const Color borderAccent = Color(0xFFcbc3e3);
 
