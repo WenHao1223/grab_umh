@@ -157,6 +157,7 @@ class _HomePageState extends State<HomePage> {
       if (detectedIntent == 'accept_order') {
         // if (normalized.contains('accept')) {
         _timer?.cancel();
+        speech.stopListening();
         _rideAccepted(ride);
         Navigator.of(context).pop();
       } else if (detectedIntent == 'reject_order' ||
