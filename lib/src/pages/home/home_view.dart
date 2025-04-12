@@ -11,6 +11,8 @@ import 'package:grab_umh/src/modules/directions_repository.dart';
 import 'package:grab_umh/src/settings/settings_view.dart';
 import 'package:grab_umh/src/utils/constants/colors.dart';
 
+import 'package:flutter_tts/flutter_tts.dart'; //tts
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -23,6 +25,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  //tts
+  final FlutterTts _flutterTts = FlutterTts();
+
+  String _selectedLanguage = 'English';
+  final Map<String, String> _langCodeMap = {
+    'English': 'en-US',
+    'Malay': 'ms-MY',
+    'Chinese': 'zh-CN',
+  };
+
   GoogleMapController? _googleMapController;
   Marker? _origin;
   Marker? _destination;
@@ -65,6 +77,7 @@ class _HomePageState extends State<HomePage> {
           if (mounted) {
             // Check if widget is still mounted
             _showRideAlert(pendingRides.first);
+            _speakRideDetails(pendingRides.first); //tts
           }
         });
       }
@@ -77,7 +90,7 @@ class _HomePageState extends State<HomePage> {
     if (!mounted) return;
 
     const int timeoutSeconds = 5;
-    _progress.value = 1.0;  // Use .value to update ValueNotifier
+    _progress.value = 1.0; // Use .value to update ValueNotifier
 
     _timer?.cancel();
     _timer = Timer.periodic(
@@ -103,7 +116,8 @@ class _HomePageState extends State<HomePage> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return StatefulBuilder(
-          builder: (context, setDialogState) {  // Rename setState to setDialogState for clarity
+          builder: (context, setDialogState) {
+            // Rename setState to setDialogState for clarity
             return PopScope(
               child: AlertDialog(
                 shape: RoundedRectangleBorder(
@@ -160,6 +174,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             onPressed: () {
                               _timer?.cancel();
+                              _speakRideRejected(ride);
                               Navigator.of(context).pop();
                             },
                             child: const Text('Skip Ride'),
@@ -185,7 +200,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                               onPressed: () {
                                 _timer?.cancel();
-                                _rideAccepted(ride);  // Pass the ride data
+                                _rideAccepted(ride); // Pass the ride data
                                 Navigator.of(context).pop();
                               },
                               child: const Text('Accept Ride'),
@@ -248,6 +263,81 @@ class _HomePageState extends State<HomePage> {
         CameraUpdate.newLatLngBounds(_info!.bounds, 100),
       );
     }
+    _speakRideAccepted(ride);
+  }
+
+  //tts
+  Future<void> _speakRideDetails(RideModel ride) async {
+    String langCode = _langCodeMap[_selectedLanguage]!;
+    await _flutterTts.setLanguage(langCode);
+    await _flutterTts.setSpeechRate(0.5);
+
+    String message;
+
+    switch (_selectedLanguage) {
+      case 'Malay':
+        message =
+            "Anda ada permintaan perjalanan baharu. Penumpang ke ${ride.locations.drop.name}. Jarak: ${ride.details.distance}. Harga: ${ride.details.fare.toStringAsFixed(2)} ringgit. Adakah anda ingin terima?";
+        break;
+      case 'Chinese':
+        message =
+            "您有一个新的订单请求。目的地是${ride.locations.drop.name}。距离是${ride.details.distance}。费用是${ride.details.fare.toStringAsFixed(2)}令吉。您要接受吗？";
+        break;
+      default:
+        message =
+            "You have a new ride request. Destination: ${ride.locations.drop.name}. Distance: ${ride.details.distance}. Fare: ${ride.details.fare.toStringAsFixed(2)} ringgit. Do you want to accept?";
+    }
+
+    await _flutterTts.speak(message);
+  }
+
+  Future<void> _speakRideAccepted(RideModel ride) async {
+    String langCode = _langCodeMap[_selectedLanguage]!;
+    await _flutterTts.setLanguage(langCode);
+    await _flutterTts.setSpeechRate(0.5);
+
+    String message;
+
+    switch (_selectedLanguage) {
+      case 'Malay':
+        message =
+            "Anda telah menerima permintaan perjalanan. Penumpang ke ${ride.locations.drop.name}. Jarak: ${ride.details.distance}. Harga: ${ride.details.fare.toStringAsFixed(2)} ringgit.";
+        break;
+      case 'Chinese':
+        message =
+            "您已接受新的订单请求。目的地是${ride.locations.drop.name}。距离是${ride.details.distance}。费用是${ride.details.fare.toStringAsFixed(2)}令吉。";
+        break;
+      default:
+        message =
+            "You have accepted the ride request. Destination: ${ride.locations.drop.name}. Distance: ${ride.details.distance}. Fare: ${ride.details.fare.toStringAsFixed(2)} ringgit.";
+    }
+
+    await _flutterTts.speak(message);
+  }
+
+  // Method to speak Ride Rejected details
+  Future<void> _speakRideRejected(RideModel ride) async {
+    String langCode = _langCodeMap[_selectedLanguage]!;
+    await _flutterTts.setLanguage(langCode);
+    await _flutterTts.setSpeechRate(0.5);
+
+    String message;
+
+    switch (_selectedLanguage) {
+      case 'Malay':
+        message =
+            "Anda telah menolak permintaan perjalanan. Penumpang ke ${ride.locations.drop.name}. Jarak: ${ride.details.distance}. Harga: ${ride.details.fare.toStringAsFixed(2)} ringgit.";
+        break;
+      case 'Chinese':
+        message =
+            "您已拒绝新的订单请求。目的地是${ride.locations.drop.name}。距离是${ride.details.distance}。费用是${ride.details.fare.toStringAsFixed(2)}令吉。";
+        break;
+      default:
+        message =
+            "You have rejected the ride request. Destination: ${ride.locations.drop.name}. Distance: ${ride.details.distance}. Fare: ${ride.details.fare.toStringAsFixed(2)} ringgit.";
+    }
+
+    await _flutterTts.speak(message);
   }
 
   @override
@@ -408,14 +498,14 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _timer?.cancel();
-    _progress.dispose();  // Don't forget to dispose the ValueNotifier
+    _progress.dispose(); // Don't forget to dispose the ValueNotifier
     _googleMapController?.dispose();
     super.dispose();
   }
 }
 
 class BorderPainter extends CustomPainter {
-  final double progress;  // Keep this as double, not ValueNotifier
+  final double progress; // Keep this as double, not ValueNotifier
   final Color color;
 
   BorderPainter({required this.progress, required this.color});
