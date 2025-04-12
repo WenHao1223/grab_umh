@@ -48,12 +48,17 @@ class RideDetails {
 }
 
 class RideLocations {
+  final LocationInfo start;
   final LocationInfo drop;
 
-  RideLocations({required this.drop});
+  RideLocations({
+    required this.start,
+    required this.drop,
+  });
 
   factory RideLocations.fromJson(Map<String, dynamic> json) {
     return RideLocations(
+      start: LocationInfo.fromJson(json['start']),
       drop: LocationInfo.fromJson(json['drop']),
     );
   }
@@ -61,12 +66,34 @@ class RideLocations {
 
 class LocationInfo {
   final String name;
+  final Location location;
 
-  LocationInfo({required this.name});
+  LocationInfo({
+    required this.name,
+    required this.location,
+  });
 
   factory LocationInfo.fromJson(Map<String, dynamic> json) {
     return LocationInfo(
       name: json['name'],
+      location: Location.fromJson(json['location']),
+    );
+  }
+}
+
+class Location {
+  final double lat;
+  final double lng;
+
+  Location({
+    required this.lat,
+    required this.lng,
+  });
+
+  factory Location.fromJson(Map<String, dynamic> json) {
+    return Location(
+      lat: json['lat'].toDouble(),
+      lng: json['lng'].toDouble(),
     );
   }
 }

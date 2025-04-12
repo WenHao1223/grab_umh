@@ -185,7 +185,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                               onPressed: () {
                                 _timer?.cancel();
-                                // Handle ride acceptance here
+                                _rideAccepted(ride);  // Pass the ride data
                                 Navigator.of(context).pop();
                               },
                               child: const Text('Accept Ride'),
@@ -204,6 +204,50 @@ class _HomePageState extends State<HomePage> {
     ).then((_) {
       _timer?.cancel();
     });
+  }
+
+  void _rideAccepted(RideModel ride) async {
+    // Create origin marker from ride start location
+    final origin = Marker(
+      markerId: const MarkerId('origin'),
+      infoWindow: InfoWindow(title: ride.locations.start.name),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+      position: LatLng(
+        ride.locations.start.location.lat,
+        ride.locations.start.location.lng,
+      ),
+    );
+
+    // Create destination marker from ride drop location
+    final destination = Marker(
+      markerId: const MarkerId('destination'),
+      infoWindow: InfoWindow(title: ride.locations.drop.name),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+      position: LatLng(
+        ride.locations.drop.location.lat,
+        ride.locations.drop.location.lng,
+      ),
+    );
+
+    // Get directions between origin and destination
+    final directionsRepo = DirectionsRepository(dio: Dio());
+    final directions = await directionsRepo.getDirections(
+      origin: origin.position,
+      destination: destination.position,
+    );
+
+    setState(() {
+      _origin = origin;
+      _destination = destination;
+      _info = directions;
+    });
+
+    // Animate camera to show both markers
+    if (_googleMapController != null && _info != null) {
+      _googleMapController!.animateCamera(
+        CameraUpdate.newLatLngBounds(_info!.bounds, 100),
+      );
+    }
   }
 
   @override
