@@ -1,0 +1,110 @@
+[
+  {
+    "driverId": "D123",
+    "name": "Alice Smith",
+    "email": "alicesmith@gmail.com",
+    "phone": "+60123456789",
+    "credit": 100.0,
+    "car": {
+      "id": "C456",
+      "name": "Toyota Camry",
+      "color": "Blue",
+      "plate": "ABC1234"
+    },
+    "rating": 4.5,
+    "feedback": {
+      "positive": 50,
+      "negative": 5
+    },
+    "ridesCompleted": 100,
+    "nationality": "Malaysian",
+    "license": {
+      "number": "D1234567",
+      "expiryDate": "2025-12-31"
+    },
+    "feedbackComments": [
+      {
+        "passengerName": "John Doe",
+        "comment": "Great ride!",
+        "rating": 5
+      },
+      {
+        "passengerName": "Jane Smith",
+        "comment": "Very polite driver.",
+        "rating": 4
+      }
+    ]
+  },
+  {
+    "driverId": "D124",
+    "name": "Bob Johnson",
+    "email": "bobjohnson@gmail.com",
+    "phone": "+60129876543",
+    "credit": 150.0,
+    "car": {
+      "id": "C457",
+      "name": "Honda Civic",
+      "color": "Red",
+      "plate": "XYZ5678"
+    },
+    "rating": 4.8,
+    "feedback": {
+      "positive": 75,
+      "negative": 3
+    },
+    "ridesCompleted": 120,
+    "nationality": "Malaysian",
+    "license": {
+      "number": "D7654321",
+      "expiryDate": "2026-06-30"
+    },
+    "feedbackComments": [
+      {
+        "passengerName": "Emily Clark",
+        "comment": "Very smooth ride.",
+        "rating": 5
+      },
+      {
+        "passengerName": "Michael Brown",
+        "comment": "Friendly and professional.",
+        "rating": 5
+      }
+    ]
+  },
+  {
+    "driverId": "D125",
+    "name": "Charlie Lee",
+    "email": "charlielee@gmail.com",
+    "phone": "+60123459876",
+    "credit": 200.0,
+    "car": {
+      "id": "C458",
+      "name": "Proton Saga",
+      "color": "White",
+      "plate": "LMN3456"
+    },
+    "rating": 4.6,
+    "feedback": {
+      "positive": 60,
+      "negative": 4
+    },
+    "ridesCompleted": 110,
+    "nationality": "Malaysian",
+    "license": {
+      "number": "D9876543",
+      "expiryDate": "2024-11-15"
+    },
+    "feedbackComments": [
+      {
+        "passengerName": "Sophia Wilson",
+        "comment": "Driver was very punctual.",
+        "rating": 4
+      },
+      {
+        "passengerName": "Liam Davis",
+        "comment": "Clean car and great service.",
+        "rating": 5
+      }
+    ]
+  }
+]

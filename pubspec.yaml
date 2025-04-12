@@ -10,16 +10,24 @@ environment:
   sdk: ^3.5.3
 
 dependencies:
+  dio: ^5.8.0+1
+  firebase_analytics: ^11.4.5
+  firebase_auth: ^5.5.2
+  firebase_core: ^3.13.0
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  flutter_polyline_points: ^2.1.0
+  google_fonts: ^6.2.1
+  google_maps_flutter: ^2.12.1
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
@@ -30,3 +38,5 @@ flutter:
   assets:
     # Add assets from the images directory to the application.
     - assets/images/
+    - assets/data/drivers.json
+    - assets/data/ride.json
