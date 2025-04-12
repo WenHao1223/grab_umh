@@ -64,6 +64,12 @@ class _HomePageState extends State<HomePage> {
           },
           child: const Text('DEST'),
         ),
+        IconButton(
+          icon: const Icon(Icons.settings),
+          onPressed: () {
+            Navigator.restorablePushNamed(context, SettingsView.routeName);
+          },
+        ),
       ]),
       body: Stack(
         alignment: Alignment.center,
@@ -97,7 +103,7 @@ class _HomePageState extends State<HomePage> {
             zoomControlsEnabled: true,
             zoomGesturesEnabled: true,
           ),
-          if (_info != null) 
+          if (_info != null)
             Positioned(
               top: 20,
               child: Container(
@@ -132,9 +138,8 @@ class _HomePageState extends State<HomePage> {
         foregroundColor: GCrabColors.white,
         onPressed: () => _googleMapController
           ?..animateCamera(
-            _info != null 
-                ? CameraUpdate.newLatLngBounds(
-                    _info!.bounds, 100)
+            _info != null
+                ? CameraUpdate.newLatLngBounds(_info!.bounds, 100)
                 : CameraUpdate.newCameraPosition(_kGooglePlex),
           ),
         child: const Icon(
@@ -144,7 +149,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> _addMarker (LatLng pos) async {
+  Future<void> _addMarker(LatLng pos) async {
     if (_origin == null || (_origin != null && _destination != null)) {
       setState(() {
         _origin = Marker(
