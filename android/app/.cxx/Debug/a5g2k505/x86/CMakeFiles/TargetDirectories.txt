@@ -1,0 +1,2 @@
+C:/Users/jessi/OneDrive/Desktop/grab_umh-1/android/app/.cxx/Debug/a5g2k505/x86/CMakeFiles/edit_cache.dir
+C:/Users/jessi/OneDrive/Desktop/grab_umh-1/android/app/.cxx/Debug/a5g2k505/x86/CMakeFiles/rebuild_cache.dir
