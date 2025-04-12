@@ -51,6 +51,9 @@ class _HomePageState extends State<HomePage> {
   // Add this field to store current user
   final String? _currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
+  // Add this field to store current ride details
+  RideModel? _currentRide;
+
   static const CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(5.285153, 100.456238),
     zoom: 14.4746,
@@ -75,7 +78,7 @@ class _HomePageState extends State<HomePage> {
       _pendingRides = ridesSnapshot.docs.map((doc) {
         final data = doc.data();
         data['rideId'] = doc.id;
-        return RideModel.fromJson(data);
+        return RideModel.fromJson(data, doc.id);
       }).toList();
 
       if (_pendingRides.isNotEmpty) {
@@ -323,6 +326,7 @@ class _HomePageState extends State<HomePage> {
         _origin = origin;
         _destination = destination;
         _info = directions;
+        _currentRide = ride; // Add this line
       });
 
       // Animate camera to show both markers
@@ -462,7 +466,6 @@ class _HomePageState extends State<HomePage> {
         ),
       ]),
       body: Stack(
-        alignment: Alignment.center,
         children: [
           GoogleMap(
             mapType: MapType.normal,
@@ -521,20 +524,166 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: GCrabColors.buttonPrimary,
-        foregroundColor: GCrabColors.white,
-        onPressed: () => _googleMapController
-          ?..animateCamera(
-            _info != null
-                ? CameraUpdate.newLatLngBounds(_info!.bounds, 100)
-                : CameraUpdate.newCameraPosition(_kGooglePlex),
+          // Add the floating action button here instead of using floatingActionButton property
+          Positioned(
+            right: 16,
+            bottom: _info != null ? MediaQuery.of(context).size.height * 0.45 : 16,
+            child: FloatingActionButton(
+              backgroundColor: GCrabColors.buttonPrimary,
+              foregroundColor: GCrabColors.white,
+              onPressed: () => _googleMapController?.animateCamera(
+                _info != null
+                    ? CameraUpdate.newLatLngBounds(_info!.bounds, 100)
+                    : CameraUpdate.newCameraPosition(_kGooglePlex),
+              ),
+              child: const Icon(Icons.center_focus_strong),
+            ),
           ),
-        child: const Icon(
-          Icons.center_focus_strong,
-        ),
+          // Add the ride details panel when a ride is accepted
+          if (_info != null)
+            DraggableScrollableSheet(
+              initialChildSize: 0.4,
+              minChildSize: 0.2,
+              maxChildSize: 0.4,
+              builder: (context, scrollController) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(25),
+                        blurRadius: 10,
+                        offset: const Offset(0, -5),
+                      ),
+                    ],
+                  ),
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Drag handle
+                          Center(
+                            child: Container(
+                              width: 40,
+                              height: 4,
+                              margin: const EdgeInsets.only(bottom: 16),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                          ),
+                          // Location and Fare
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _origin?.infoWindow.title ?? '',
+                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Text(
+                                'RM ${_currentRide?.details.fare.toStringAsFixed(2) ?? '0.00'}',
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: GCrabColors.buttonPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          // Drop-off location
+                          Text(
+                            'To: ${_destination?.infoWindow.title ?? ''}',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 4),
+                          // Passenger name
+                          Text(
+                            'Passenger: ${_currentRide?.passenger.name ?? ''}',
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                          const SizedBox(height: 4),
+                          // Payment method
+                          Text(
+                            'Payment: ${_currentRide?.payment.method ?? ''}'.toUpperCase(),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          const Divider(height: 24),
+                          // Driver section
+                          Text(
+                            'Driver',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Name: ${_currentRide?.driverDetails?.name ?? ''}',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          Text(
+                            'Car: ${_currentRide?.driverDetails?.car.plate ?? ''} '
+                            '(${_currentRide?.driverDetails?.car.color ?? ''})',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: 16),
+                          // Action buttons
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              IconButton.filled(
+                                onPressed: () {
+                                  // Implement call passenger
+                                },
+                                icon: const Icon(Icons.phone),
+                                style: IconButton.styleFrom(
+                                  backgroundColor: GCrabColors.buttonPrimary,
+                                  foregroundColor: Colors.white,
+                                ),
+                              ),
+                              IconButton.filled(
+                                onPressed: () {
+                                  // Implement chat with passenger
+                                },
+                                icon: const Icon(Icons.chat),
+                                style: IconButton.styleFrom(
+                                  backgroundColor: GCrabColors.buttonPrimary,
+                                  foregroundColor: Colors.white,
+                                ),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  // Implement fetched action
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: GCrabColors.buttonPrimary,
+                                  foregroundColor: Colors.white,
+                                  minimumSize: const Size(120, 40),
+                                ),
+                                child: const Text('Fetched?'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+        ],
       ),
     );
   }
