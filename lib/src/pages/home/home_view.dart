@@ -12,6 +12,7 @@ import 'package:grab_umh/src/stt/speech_transcriber';
 import 'package:grab_umh/src/utils/constants/colors.dart';
 import 'package:grab_umh/src/utils/api/intent_classifier_api.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:flutter_tts/flutter_tts.dart'; //tts
 
@@ -40,6 +41,8 @@ class _HomePageState extends State<HomePage> {
     'Malay': 'ms-MY',
     'Chinese': 'zh-CN',
   };
+
+  late String? detectedIntent;
 
   GoogleMapController? _googleMapController;
   Marker? _origin;
@@ -94,12 +97,6 @@ class _HomePageState extends State<HomePage> {
             // Check if widget is still mounted
             _showRideAlert(_pendingRides.first);
             _speakRideDetails(_pendingRides.first); //tts
-
-            // TODO: change based on the intent @mjlee01
-            final detectedIntent = await detectIntent(driverResponse);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Detected intent: $detectedIntent')),
-            );
           }
         });
       }
@@ -152,19 +149,26 @@ class _HomePageState extends State<HomePage> {
     );
 
     final SpeechTranscriber speech = SpeechTranscriber();
-    speech.startListening().then((command) {
+    speech.startListening().then((command) async {
       if (!mounted) return;
-      final normalized = command?.toLowerCase().trim() ?? "";
+      // final normalized = command?.toLowerCase().trim() ?? "";
+      detectedIntent = await detectIntent(command ?? '');
 
-      if (normalized.contains('accept')) {
+      if (detectedIntent == 'accept_order') {
+        // if (normalized.contains('accept')) {
         _timer?.cancel();
         _rideAccepted(ride);
         Navigator.of(context).pop();
-      } else if (normalized.contains('skip') || normalized.contains('reject')) {
+      } else if (detectedIntent == 'reject_order' ||
+          detectedIntent == 'stop_request') {
+        // } else if (normalized.contains('skip') || normalized.contains('reject')) {
         _timer?.cancel();
         _speakRideRejected(ride);
         Navigator.of(context).pop();
       }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Detected intent: $detectedIntent')),
+      );
     }).catchError((e) {
       debugPrint('Speech error: $e');
     });
@@ -862,6 +866,18 @@ class _HomePageState extends State<HomePage> {
                               IconButton.filled(
                                 onPressed: () {
                                   // Implement call passenger
+                                  final phoneNumber = _currentRide?.passenger.phone;
+                                  if (phoneNumber != null && phoneNumber.isNotEmpty) {
+                                    final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
+                                    launchUrl(phoneUri);
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Phone number not available'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
                                 },
                                 icon: const Icon(Icons.phone),
                                 style: IconButton.styleFrom(
@@ -872,6 +888,12 @@ class _HomePageState extends State<HomePage> {
                               IconButton.filled(
                                 onPressed: () {
                                   // Implement chat with passenger
+                                  // go to chat
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => ChatPage()),
+                                  );
                                 },
                                 icon: const Icon(Icons.chat),
                                 style: IconButton.styleFrom(
