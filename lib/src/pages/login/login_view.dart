@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:grab_umh/src/settings/settings_view.dart';
 import 'package:grab_umh/src/utils/constants/sizes.dart';
 import 'package:grab_umh/src/components/component.dart';
-import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:grab_umh/src/models/driver_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -37,6 +35,8 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _checkExistingLogin() async {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final currentUser = _auth.currentUser;
+      print("Current user --------- ");
+      print(currentUser);
       if (currentUser != null && mounted) {
         Navigator.pushReplacementNamed(context, '/home');
       }
