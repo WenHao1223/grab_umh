@@ -30,6 +30,29 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     _loadDrivers();
+    _checkExistingLogin();
+  }
+
+  Future<void> _checkExistingLogin() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/loginDriver.json');
+      
+      if (await file.exists()) {
+        final content = await file.readAsString();
+        final json = jsonDecode(content);
+        
+        // Check if the file has valid content
+        if (json != null && json.isNotEmpty) {
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, '/home');
+          }
+        }
+      }
+    } catch (e) {
+      print('Error checking existing login: $e');
+      // If there's an error reading the file, we'll just continue to the login screen
+    }
   }
 
   Future<void> _loadDrivers() async {

@@ -21,11 +21,17 @@ class SettingsView extends StatelessWidget {
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/loginDriver.json');
 
-      // Write empty JSON object to file
-      await file.writeAsString('{}');
       // print file content
       final content = await file.readAsString();
       print('File content: $content');
+
+      // delete file if exists
+      if (await file.exists()) {
+        await file.delete();
+        print('File deleted successfully');
+      } else {
+        throw Exception('File does not exist');
+      }
 
       // Navigate to login page and remove all previous routes
       if (context.mounted) {

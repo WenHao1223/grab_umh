@@ -319,7 +319,7 @@ class _HomePageState extends State<HomePage> {
                       .toList(),
                 ),
             },
-            onLongPress: _addMarker,
+            // onLongPress: _addMarker,
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
             zoomControlsEnabled: true,
