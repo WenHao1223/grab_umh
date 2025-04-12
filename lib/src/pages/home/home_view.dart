@@ -13,6 +13,8 @@ import 'package:grab_umh/src/utils/constants/colors.dart';
 
 import 'package:flutter_tts/flutter_tts.dart'; //tts
 
+import 'package:grab_umh/src/pages/chat/chat.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -380,6 +382,15 @@ class _HomePageState extends State<HomePage> {
           icon: const Icon(Icons.settings),
           onPressed: () {
             Navigator.restorablePushNamed(context, SettingsView.routeName);
+          },
+        ),
+        IconButton(
+          icon: const Icon(Icons.chat),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ChatPage()),
+            );
           },
         ),
       ]),
