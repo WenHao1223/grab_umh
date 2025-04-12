@@ -51,11 +51,11 @@ https://www.canva.com/design/DAGkbflqCYs/H-L3X4Qx_2JKKvEUUG_L9w/view?utm_content
    git clone https://github.com/your-username/crab-ai-assistant.git
    cd crab-ai-assistant
 2. **Get dependencies:**
-```bash
-flutter pub get
-```
+  ```bash
+  flutter pub get
+  ```
 3. **Run the app:**
-```bash
-flutter run
-```
->⚠️ Make sure microphone permission is granted and speech-to-text is supported on the device.
+  ```bash
+  flutter run
+  ```
+  >⚠️ Make sure microphone permission is granted and speech-to-text is supported on the device.
