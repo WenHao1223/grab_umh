@@ -21,7 +21,7 @@ class GCrabAppBarTheme{
     scrolledUnderElevation: 0,
     backgroundColor: Colors.transparent,
     surfaceTintColor: Colors.transparent,
-    iconTheme: IconThemeData(color: GCrabColors.black, size: GCrabSizes.iconMd),
+    iconTheme: IconThemeData(color: GCrabColors.white, size: GCrabSizes.iconMd),
     actionsIconTheme: IconThemeData(color: GCrabColors.white, size: GCrabSizes.iconMd),
     titleTextStyle: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w600, color: GCrabColors.white),
   );
