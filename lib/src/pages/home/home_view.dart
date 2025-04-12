@@ -123,20 +123,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showRideAlert(RideModel ride) {
-
-  if (!mounted) return;
+    if (!mounted) return;
 
     const int timeoutSeconds = 20; // duration to show pop up
     _progress.value = 1.0; // Use .value to update ValueNotifier
 
-  _timer?.cancel();
-  _timer = Timer.periodic(
-    const Duration(milliseconds: 100),
-    (Timer timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
+    _timer?.cancel();
+    _timer = Timer.periodic(
+      const Duration(milliseconds: 100),
+      (Timer timer) {
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
 
         _progress.value -= (1.0 / (timeoutSeconds * 10));
         if (_progress.value <= 0) {
@@ -224,54 +223,83 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
                 actions: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  Column(
+                    mainAxisSize: MainAxisSize.min, // Add this
                     children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              side:
-                                  BorderSide(color: GCrabColors.buttonPrimary),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8),
+                              child: OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(
+                                      color: GCrabColors.buttonPrimary),
+                                ),
+                                onPressed: () {
+                                  _timer?.cancel();
+                                  speech.stopListening();
+                                  _speakRideRejected(ride);
+                                  Navigator.of(context).pop();
+                                  _showNextRide();
+                                },
+                                child: const Text('Skip Ride'),
+                              ),
                             ),
-                            onPressed: () {
-                              _timer?.cancel();
-                              speech.stopListening();
-                              _speakRideRejected(ride);
-                              Navigator.of(context).pop();
-                              _showNextRide(); // Add this line to show next ride
-                            },
-                            child: const Text('Skip Ride'),
                           ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: CustomPaint(
-                            painter: BorderPainter(
-                              progress: _progress.value,
-                              color: GCrabColors.darkGrey,
-                            ),
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: GCrabColors.buttonPrimary,
-                                foregroundColor: Colors.white,
-                                minimumSize: const Size.fromHeight(40),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5),
+                          Expanded(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8),
+                              child: CustomPaint(
+                                painter: BorderPainter(
+                                  progress: _progress.value,
+                                  color: GCrabColors.darkGrey,
+                                ),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: GCrabColors.buttonPrimary,
+                                    foregroundColor: Colors.white,
+                                    minimumSize: const Size.fromHeight(40),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(5),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    _timer?.cancel();
+                                    speech.stopListening();
+                                    _rideAccepted(ride);
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text('Accept Ride'),
                                 ),
                               ),
-                              onPressed: () {
-                                _timer?.cancel();
-                                speech.stopListening();
-                                _rideAccepted(ride);
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text('Accept Ride'),
                             ),
                           ),
+                        ],
+                      ),
+                      const SizedBox(height: 8), // Add spacing
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: GCrabColors.black,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size.fromHeight(40),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                          onPressed: () {
+                            _timer?.cancel();
+                            speech.stopListening();
+                            _speakRideStopped();
+                            Navigator.of(context).pop();
+                            _stopAcceptingRide();
+                          },
+                          child: const Text('Stop Accepting Ride'),
                         ),
                       ),
                     ],
@@ -455,6 +483,72 @@ class _HomePageState extends State<HomePage> {
     }
 
     await _flutterTts.speak(message);
+  }
+
+  Future<void> _speakRideStopped() async {
+    String langCode = _langCodeMap[_selectedLanguage]!;
+    await _flutterTts.setLanguage(langCode);
+    await _flutterTts.setSpeechRate(0.5);
+
+    String message;
+    switch (_selectedLanguage) {
+      case 'Malay':
+        message = "Berhenti menerima tunggangan.";
+        break;
+      case 'Chinese':
+        message = "停止载客。";
+        break;
+      default:
+        message = "Stop accepting ride.";
+    }
+
+    await _flutterTts.speak(message);
+  }
+
+  Future<void> _stopAcceptingRide() async {
+    try {
+      if (_currentRide == null) {
+        throw 'No active ride to stop';
+      }
+
+      // Clear the map
+      setState(() {
+        _origin = null;
+        _destination = null;
+        _info = null;
+        _currentRide = null;
+      });
+
+      // Reset map camera to default position
+      if (_googleMapController != null) {
+        _googleMapController!.animateCamera(
+          CameraUpdate.newCameraPosition(_kGooglePlex),
+        );
+      }
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Stopped accepting ride successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+
+      // Reload available rides
+      _loadRideData();
+    } catch (e) {
+      // Show error to user
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to stop accepting ride: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
