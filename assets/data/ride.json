@@ -1,0 +1,158 @@
+[
+  {
+    "rideId": "1",
+    "details": {
+      "fare": 20.0,
+      "status": "completed",
+      "orderTime": "2023-10-01T10:00:00Z",
+      "fetchTime": "2023-10-01T10:05:00Z",
+      "dropTime": "2023-10-01T10:15:00Z"
+    },
+    "locations": {
+      "start": {
+        "location": {
+          "lat": 5.4164,
+          "lng": 100.3327
+        },
+        "name": "Komtar Tower"
+      },
+      "drop": {
+        "location": {
+          "lat": 5.4340,
+          "lng": 100.3170
+        },
+        "name": "Penang Botanical Gardens"
+      }
+    },
+    "driver": {
+      "id": "D123",
+      "name": "John Doe"
+    },
+    "car": {
+      "id": "C456",
+      "name": "Toyota Camry",
+      "color": "Blue",
+      "plate": "ABC123"
+    },
+    "passenger": {
+      "id": "P789",
+      "name": "Jane Smith"
+    },
+    "payment": {
+      "method": "credit_card",
+      "status": "paid"
+    },
+    "rating": {
+      "driver": 4.5,
+      "passenger": 4.0
+    },
+    "feedback": {
+      "driver": "Great ride!",
+      "passenger": "Very polite driver."
+    }
+  },
+  {
+    "rideId": "2",
+    "details": {
+      "fare": 15.0,
+      "status": "pending",
+      "orderTime": "2023-10-01T11:00:00Z",
+      "fetchTime": null,
+      "dropTime": null
+    },
+    "locations": {
+      "start": {
+        "location": {
+          "lat": 5.4112,
+          "lng": 100.3354
+        },
+        "name": "Penang Times Square"
+      },
+      "drop": {
+        "location": {
+          "lat": 5.4355,
+          "lng": 100.3123
+        },
+        "name": "Gurney Plaza"
+      }
+    },
+    "driver": {
+      "id": null,
+      "name": null
+    },
+    "car": {
+      "id": null,
+      "name": null,
+      "color": null,
+      "plate": null
+    },
+    "passenger": {
+      "id": "P790",
+      "name": "Bob Lee"
+    },
+    "payment": {
+      "method": "credit_card",
+      "status": "pending"
+    },
+    "rating": {
+      "driver": null,
+      "passenger": null
+    },
+    "feedback": {
+      "driver": null,
+      "passenger": null
+    }
+  },
+  {
+    "rideId": "3",
+    "details": {
+      "fare": 30.0,
+      "status": "pending",
+      "orderTime": "2023-10-01T12:00:00Z",
+      "fetchTime": null,
+      "dropTime": null
+    },
+    "locations": {
+      "start": {
+        "location": {
+          "lat": 5.4141,
+          "lng": 100.3288
+        },
+        "name": "Penang Hill"
+      },
+      "drop": {
+        "location": {
+          "lat": 5.4212,
+          "lng": 100.3294
+        },
+        "name": "Kek Lok Si Temple"
+      }
+    },
+    "driver": {
+      "id": null,
+      "name": null
+    },
+    "car": {
+      "id": null,
+      "name": null,
+      "color": null,
+      "plate": null
+    },
+    "passenger": {
+      "id": "P791",
+      "name": "Alice Wong"
+    },
+    "payment": {
+      "method": "credit_card",
+      "status": "pending"
+    },
+    "rating": {
+      "driver": null,
+      "passenger": null
+    },
+    "feedback": {
+      "driver": null,
+      "passenger": null
+    }
+  }
+]
