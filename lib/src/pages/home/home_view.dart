@@ -59,6 +59,8 @@ class _HomePageState extends State<HomePage> {
   // Add this field to store current ride details
   RideModel? _currentRide;
 
+  bool _isAcceptingRides = false;
+
   static const CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(5.285153, 100.456238),
     zoom: 14.4746,
@@ -86,7 +88,7 @@ class _HomePageState extends State<HomePage> {
         return RideModel.fromJson(data, doc.id);
       }).toList();
 
-      if (_pendingRides.isNotEmpty) {
+      if (_pendingRides.isNotEmpty && _isAcceptingRides) {
         Future.delayed(const Duration(seconds: 2), () async {
           if (mounted) {
             // Check if widget is still mounted
@@ -507,16 +509,13 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _stopAcceptingRide() async {
     try {
-      if (_currentRide == null) {
-        throw 'No active ride to stop';
-      }
-
-      // Clear the map
+      // Clear the map and set accepting rides to false
       setState(() {
         _origin = null;
         _destination = null;
         _info = null;
         _currentRide = null;
+        _isAcceptingRides = false; // Add this line
       });
 
       // Reset map camera to default position
@@ -549,6 +548,73 @@ class _HomePageState extends State<HomePage> {
         );
       }
     }
+  }
+
+  Future<void> _startAcceptingRide() async {
+    try {
+      // Reset all states
+      setState(() {
+        _isAcceptingRides = true;
+        _currentRide = null;
+        _origin = null;
+        _destination = null;
+        _info = null;
+        _pendingRides.clear();
+      });
+
+      // Reset map camera to default position
+      if (_googleMapController != null) {
+        _googleMapController!.animateCamera(
+          CameraUpdate.newCameraPosition(_kGooglePlex),
+        );
+      }
+
+      // Speak the status
+      await _speakStartAccepting();
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Started accepting rides'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+
+      // Start loading ride data
+      await _loadRideData();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to start accepting rides: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // Add new TTS function for start accepting
+  Future<void> _speakStartAccepting() async {
+    String langCode = _langCodeMap[_selectedLanguage]!;
+    await _flutterTts.setLanguage(langCode);
+    await _flutterTts.setSpeechRate(0.5);
+
+    String message;
+    switch (_selectedLanguage) {
+      case 'Malay':
+        message = "Mula menerima tunggangan.";
+        break;
+      case 'Chinese':
+        message = "开始接单。";
+        break;
+      default:
+        message = "Start accepting ride.";
+    }
+
+    await _flutterTts.speak(message);
   }
 
   @override
@@ -637,6 +703,7 @@ class _HomePageState extends State<HomePage> {
           if (_info != null)
             Positioned(
               top: 20,
+              left: 20,
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
@@ -665,10 +732,11 @@ class _HomePageState extends State<HomePage> {
           // Add the floating action button here instead of using floatingActionButton property
           Positioned(
             right: 16,
-            bottom:
-                _info != null ? MediaQuery.of(context).size.height * 0.45 : 16,
+            bottom: _info != null
+                ? MediaQuery.of(context).size.height * 0.45
+                : 120, // Adjust when Start Accepting Ride button is visible
             child: FloatingActionButton(
-              backgroundColor: GCrabColors.buttonPrimary,
+              backgroundColor: GCrabColors.accent,
               foregroundColor: GCrabColors.white,
               onPressed: () => _googleMapController?.animateCamera(
                 _info != null
@@ -831,6 +899,33 @@ class _HomePageState extends State<HomePage> {
                   ),
                 );
               },
+            ),
+          // Add the Start Accepting Rides button here
+          if (!_isAcceptingRides)
+            Positioned(
+              bottom: 16,
+              left: 16,
+              right: 16,
+              child: SafeArea(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: GCrabColors.black,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: _startAcceptingRide,
+                  child: const Text(
+                    'Start Accepting Rides',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
             ),
         ],
       ),
