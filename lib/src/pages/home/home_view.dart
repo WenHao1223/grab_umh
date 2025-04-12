@@ -12,6 +12,7 @@ import 'package:grab_umh/src/stt/speech_transcriber';
 import 'package:grab_umh/src/utils/constants/colors.dart';
 import 'package:grab_umh/src/utils/api/intent_classifier_api.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:flutter_tts/flutter_tts.dart'; //tts
 
@@ -865,6 +866,18 @@ class _HomePageState extends State<HomePage> {
                               IconButton.filled(
                                 onPressed: () {
                                   // Implement call passenger
+                                  final phoneNumber = _currentRide?.passenger.phone;
+                                  if (phoneNumber != null && phoneNumber.isNotEmpty) {
+                                    final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
+                                    launchUrl(phoneUri);
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Phone number not available'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
                                 },
                                 icon: const Icon(Icons.phone),
                                 style: IconButton.styleFrom(
@@ -875,6 +888,12 @@ class _HomePageState extends State<HomePage> {
                               IconButton.filled(
                                 onPressed: () {
                                   // Implement chat with passenger
+                                  // go to chat
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => ChatPage()),
+                                  );
                                 },
                                 icon: const Icon(Icons.chat),
                                 style: IconButton.styleFrom(
