@@ -2,7 +2,9 @@
   {
     "rideId": "1",
     "details": {
+      "distance": "5.0 km",
       "fare": 20.0,
+      "pax": 4,
       "status": "completed",
       "orderTime": "2023-10-01T10:00:00Z",
       "fetchTime": "2023-10-01T10:05:00Z",
@@ -54,7 +56,9 @@
   {
     "rideId": "2",
     "details": {
+      "distance": "3.5 km",
       "fare": 15.0,
+      "pax": 2,
       "status": "pending",
       "orderTime": "2023-10-01T11:00:00Z",
       "fetchTime": null,
@@ -106,7 +110,9 @@
   {
     "rideId": "3",
     "details": {
+      "distance": "7.0 km",
       "fare": 30.0,
+      "pax": 3,
       "status": "pending",
       "orderTime": "2023-10-01T12:00:00Z",
       "fetchTime": null,
