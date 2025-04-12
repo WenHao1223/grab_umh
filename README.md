@@ -36,8 +36,10 @@ https://www.canva.com/design/DAGkbflqCYs/H-L3X4Qx_2JKKvEUUG_L9w/view?utm_content
 
 
 ## 🖼️ UI Preview
-![image](https://github.com/user-attachments/assets/2b181385-d78a-4cc3-9de3-1b2780310444)
-![image](https://github.com/user-attachments/assets/2990911a-b90d-4e66-aa9b-d01cf390e0c8)
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/8bb6aed5-ba30-4137-93e8-65537de60a9c" alt="UI 1" width="45%" style="margin-right: 10px;"/>
+  <img src="https://github.com/user-attachments/assets/a5e179b3-ee0e-4e5c-8696-f66e24ef73bc" alt="UI 2" width="45%"/>
+</p>
 
 ## 🚀 Getting Started
 
