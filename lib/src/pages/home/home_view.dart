@@ -80,6 +80,17 @@ class _HomePageState extends State<HomePage> {
               if (_origin != null) _origin!,
               if (_destination != null) _destination!,
             },
+            polylines: {
+              if (_info != null)
+                Polyline(
+                  polylineId: const PolylineId('overview_polyline'),
+                  color: GCrabColors.accent,
+                  width: 5,
+                  points: _info!.polylinePoints
+                      .map((point) => LatLng(point.latitude, point.longitude))
+                      .toList(),
+                ),
+            },
             onLongPress: _addMarker,
             myLocationEnabled: true,
             myLocationButtonEnabled: true,

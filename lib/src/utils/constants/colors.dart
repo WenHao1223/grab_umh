@@ -12,7 +12,7 @@ class GCrabColors {
   // App theme colors
   static const Color primary = Color.fromRGBO(88, 188, 107, 1);
   static const Color secondary = Color(0xFFffc107);
-  static const Color accent = Color(0xFFcbc3e3);
+  static const Color accent = Color.fromRGBO(237, 108, 102, 1);
 
   // Text colors
   static const Color textPrimary = Color(0xFF333333);
