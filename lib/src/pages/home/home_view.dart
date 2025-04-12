@@ -9,6 +9,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:grab_umh/src/modules/directions_model.dart';
 import 'package:grab_umh/src/modules/directions_repository.dart';
 import 'package:grab_umh/src/settings/settings_view.dart';
+import 'package:grab_umh/src/stt/speech_transcriber';
 import 'package:grab_umh/src/utils/constants/colors.dart';
 
 import 'package:flutter_tts/flutter_tts.dart'; //tts
@@ -25,6 +26,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final SpeechTranscriber speechTranscriber = SpeechTranscriber();
+  String? _recognizedText;
+
   //tts
   final FlutterTts _flutterTts = FlutterTts();
 
@@ -87,139 +91,159 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showRideAlert(RideModel ride) {
+
+  if (!mounted) return;
+
+  const int timeoutSeconds = 20;
+  _progress.value = 1.0;
+
+  _timer?.cancel();
+  _timer = Timer.periodic(
+    const Duration(milliseconds: 100),
+    (Timer timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      _progress.value -= (1.0 / (timeoutSeconds * 10));
+      if (_progress.value <= 0) {
+        _progress.value = 0;
+        timer.cancel();
+        Navigator.of(context).pop();
+      }
+    },
+  );
+
+  final SpeechTranscriber speech = SpeechTranscriber();
+  speech.startListening().then((command) {
     if (!mounted) return;
+    final normalized = command?.toLowerCase().trim() ?? "";
 
-    const int timeoutSeconds = 5;
-    _progress.value = 1.0; // Use .value to update ValueNotifier
+    if (normalized.contains('accept')) {
+      _timer?.cancel();
+      _rideAccepted(ride);
+      Navigator.of(context).pop();
+    } else if (normalized.contains('skip') || normalized.contains('reject')) {
+      _timer?.cancel();
+      _speakRideRejected(ride);
+      Navigator.of(context).pop();
+    }
+  }).catchError((e) {
+    debugPrint('Speech error: $e');
+  });
 
-    _timer?.cancel();
-    _timer = Timer.periodic(
-      const Duration(milliseconds: 100),
-      (Timer timer) {
-        if (!mounted) {
-          timer.cancel();
-          return;
-        }
-
-        // Update the ValueNotifier directly
-        _progress.value = _progress.value - (1.0 / (timeoutSeconds * 10));
-        if (_progress.value <= 0) {
-          _progress.value = 0;
-          timer.cancel();
-          Navigator.of(context).pop();
-        }
-      },
-    );
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            // Rename setState to setDialogState for clarity
-            return PopScope(
-              child: AlertDialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('New Ride Request'),
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Colors.grey),
-                      onPressed: () {
-                        _timer?.cancel();
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                ),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Distance: ${ride.details.distance}'),
-                    const SizedBox(height: 8),
-                    Text('Fare: RM ${ride.details.fare.toStringAsFixed(2)}'),
-                    const SizedBox(height: 8),
-                    Text('Drop-off: ${ride.locations.drop.name}'),
-                    const SizedBox(height: 16),
-                    ValueListenableBuilder<double>(
-                      valueListenable: _progress,
-                      builder: (context, value, child) {
-                        return LinearProgressIndicator(
-                          value: value,
-                          backgroundColor: Colors.grey[200],
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            GCrabColors.buttonPrimary,
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-                actions: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              side:
-                                  BorderSide(color: GCrabColors.buttonPrimary),
-                            ),
-                            onPressed: () {
-                              _timer?.cancel();
-                              _speakRideRejected(ride);
-                              Navigator.of(context).pop();
-                            },
-                            child: const Text('Skip Ride'),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: CustomPaint(
-                            painter: BorderPainter(
-                              progress: _progress.value,
-                              color: GCrabColors.darkGrey,
-                            ),
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: GCrabColors.buttonPrimary,
-                                foregroundColor: Colors.white,
-                                minimumSize: const Size.fromHeight(40),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(5),
-                                ),
-                              ),
-                              onPressed: () {
-                                _timer?.cancel();
-                                _rideAccepted(ride); // Pass the ride data
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text('Accept Ride'),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setDialogState) {
+          return PopScope(
+            child: AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('New Ride Request'),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.grey),
+                    onPressed: () {
+                      _timer?.cancel();
+                      speech.stopListening();
+                      Navigator.of(context).pop();
+                    },
                   ),
                 ],
               ),
-            );
-          },
-        );
-      },
-    ).then((_) {
-      _timer?.cancel();
-    });
-  }
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Distance: ${ride.details.distance}'),
+                  const SizedBox(height: 8),
+                  Text('Fare: RM ${ride.details.fare.toStringAsFixed(2)}'),
+                  const SizedBox(height: 8),
+                  Text('Drop-off: ${ride.locations.drop.name}'),
+                  const SizedBox(height: 16),
+                  ValueListenableBuilder<double>(
+                    valueListenable: _progress,
+                    builder: (context, value, child) {
+                      return LinearProgressIndicator(
+                        value: value,
+                        backgroundColor: Colors.grey[200],
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          GCrabColors.buttonPrimary,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: GCrabColors.buttonPrimary),
+                          ),
+                          onPressed: () {
+                            _timer?.cancel();
+                            speech.stopListening();
+                            _speakRideRejected(ride);
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('Skip Ride'),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: CustomPaint(
+                          painter: BorderPainter(
+                            progress: _progress.value,
+                            color: GCrabColors.darkGrey,
+                          ),
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: GCrabColors.buttonPrimary,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size.fromHeight(40),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                            ),
+                            onPressed: () {
+                              _timer?.cancel();
+                              speech.stopListening();
+                              _rideAccepted(ride);
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('Accept Ride'),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    },
+  ).then((_) {
+    _timer?.cancel();
+    speech.stopListening();
+  });
+}
 
   void _rideAccepted(RideModel ride) async {
     // Create origin marker from ride start location
@@ -285,7 +309,7 @@ class _HomePageState extends State<HomePage> {
         break;
       default:
         message =
-            "You have a new ride request. Destination: ${ride.locations.drop.name}. Distance: ${ride.details.distance}. Fare: ${ride.details.fare.toStringAsFixed(2)} ringgit. Do you want to accept?";
+            "New ride request. To ${ride.locations.drop.name}.${ride.details.distance}. RM ${ride.details.fare.toStringAsFixed(2)}. Do you want to accept?";
     }
 
     await _flutterTts.speak(message);
