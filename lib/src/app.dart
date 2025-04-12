@@ -76,7 +76,7 @@ class MyApp extends StatelessWidget {
                   case HomePage.routeName:
                     return const HomePage();
                   default:
-                    return const LoginPage();
+                    return const HomePage();
                 }
               },
             );

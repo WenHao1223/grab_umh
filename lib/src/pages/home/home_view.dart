@@ -10,10 +10,14 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:grab_umh/src/modules/directions_model.dart';
 import 'package:grab_umh/src/modules/directions_repository.dart';
 import 'package:grab_umh/src/settings/settings_view.dart';
+import 'package:grab_umh/src/stt/speech_transcriber';
 import 'package:grab_umh/src/utils/constants/colors.dart';
+import 'package:grab_umh/src/utils/api/intent_classifier_api.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:flutter_tts/flutter_tts.dart'; //tts
+
+import 'package:grab_umh/src/pages/chat/chat.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -27,6 +31,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final SpeechTranscriber speechTranscriber = SpeechTranscriber();
+  String? _recognizedText;
+
   //tts
   final FlutterTts _flutterTts = FlutterTts();
 
@@ -45,6 +52,8 @@ class _HomePageState extends State<HomePage> {
   // Change _progress to be a ValueNotifier
   final ValueNotifier<double> _progress = ValueNotifier(1.0);
   List<RideModel>? _rides;
+  final driverResponse = "Yes, I can accept the ride";
+
   // Add this to store pending rides
   List<RideModel> _pendingRides = [];
 
@@ -82,10 +91,17 @@ class _HomePageState extends State<HomePage> {
       }).toList();
 
       if (_pendingRides.isNotEmpty) {
-        Future.delayed(const Duration(seconds: 2), () {
+        Future.delayed(const Duration(seconds: 2), () async {
           if (mounted) {
+            // Check if widget is still mounted
             _showRideAlert(_pendingRides.first);
-            _speakRideDetails(_pendingRides.first);
+            _speakRideDetails(_pendingRides.first); //tts
+
+            // TODO: change based on the intent @mjlee01
+            final detectedIntent = await detectIntent(driverResponse);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Detected intent: $detectedIntent')),
+            );
           }
         });
       }
@@ -97,7 +113,7 @@ class _HomePageState extends State<HomePage> {
   void _showNextRide() {
     if (_pendingRides.isNotEmpty) {
       _pendingRides.removeAt(0);
-      
+
       // Show next ride if available
       if (_pendingRides.isNotEmpty) {
         Future.delayed(const Duration(milliseconds: 1000), () {
@@ -113,7 +129,7 @@ class _HomePageState extends State<HomePage> {
   void _showRideAlert(RideModel ride) {
     if (!mounted) return;
 
-    const int timeoutSeconds = 15; // duration to show pop up
+    const int timeoutSeconds = 20; // duration to show pop up
     _progress.value = 1.0; // Use .value to update ValueNotifier
 
     _timer?.cancel();
@@ -125,17 +141,35 @@ class _HomePageState extends State<HomePage> {
           return;
         }
 
-        // Update the ValueNotifier directly
-        _progress.value = _progress.value - (1.0 / (timeoutSeconds * 10));
+        _progress.value -= (1.0 / (timeoutSeconds * 10));
         if (_progress.value <= 0) {
           _progress.value = 0;
           timer.cancel();
           Navigator.of(context).pop();
+
           // Add this to show next ride after timeout
           _showNextRide();
         }
       },
     );
+
+    final SpeechTranscriber speech = SpeechTranscriber();
+    speech.startListening().then((command) {
+      if (!mounted) return;
+      final normalized = command?.toLowerCase().trim() ?? "";
+
+      if (normalized.contains('accept')) {
+        _timer?.cancel();
+        _rideAccepted(ride);
+        Navigator.of(context).pop();
+      } else if (normalized.contains('skip') || normalized.contains('reject')) {
+        _timer?.cancel();
+        _speakRideRejected(ride);
+        Navigator.of(context).pop();
+      }
+    }).catchError((e) {
+      debugPrint('Speech error: $e');
+    });
 
     showDialog(
       context: context,
@@ -157,6 +191,7 @@ class _HomePageState extends State<HomePage> {
                       icon: const Icon(Icons.close, color: Colors.grey),
                       onPressed: () {
                         _timer?.cancel();
+                        speech.stopListening();
                         Navigator.of(context).pop();
                         _showNextRide(); // Add this to show next ride when manually closed
                       },
@@ -205,6 +240,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             onPressed: () {
                               _timer?.cancel();
+                              speech.stopListening();
                               _speakRideRejected(ride);
                               Navigator.of(context).pop();
                               _showNextRide(); // Add this line to show next ride
@@ -232,7 +268,8 @@ class _HomePageState extends State<HomePage> {
                               ),
                               onPressed: () {
                                 _timer?.cancel();
-                                _rideAccepted(ride); // Pass the ride data
+                                speech.stopListening();
+                                _rideAccepted(ride);
                                 Navigator.of(context).pop();
                               },
                               child: const Text('Accept Ride'),
@@ -250,6 +287,7 @@ class _HomePageState extends State<HomePage> {
       },
     ).then((_) {
       _timer?.cancel();
+      speech.stopListening();
     });
   }
 
@@ -279,7 +317,7 @@ class _HomePageState extends State<HomePage> {
           .update({
         'details.status': 'picking',
         'driverDetails': {
-          'id':  _currentUserId,
+          'id': _currentUserId,
           'name': driverData['name'],
           'phone': driverData['phone'],
           'car': {
@@ -292,7 +330,7 @@ class _HomePageState extends State<HomePage> {
 
       // Remove the accepted ride from pending rides
       _pendingRides.removeAt(0);
-      
+
       // Create origin marker from ride start location
       final origin = Marker(
         markerId: const MarkerId('origin'),
@@ -368,7 +406,7 @@ class _HomePageState extends State<HomePage> {
         break;
       default:
         message =
-            "You have a new ride request. Pick-up at ${ride.locations.start.name}, and drop-off at ${ride.locations.drop.name}. Number of passengers: ${ride.details.pax}. Distance: ${ride.details.distance}. Fare: ${ride.details.fare.toStringAsFixed(2)}. Do you want to accept?";
+            "New ride request. To ${ride.locations.drop.name}.${ride.details.distance}. RM ${ride.details.fare.toStringAsFixed(2)}. Do you want to accept?";
     }
 
     await _flutterTts.speak(message);
@@ -464,6 +502,15 @@ class _HomePageState extends State<HomePage> {
             Navigator.restorablePushNamed(context, SettingsView.routeName);
           },
         ),
+        IconButton(
+          icon: const Icon(Icons.chat),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ChatPage()),
+            );
+          },
+        ),
       ]),
       body: Stack(
         children: [
@@ -527,7 +574,8 @@ class _HomePageState extends State<HomePage> {
           // Add the floating action button here instead of using floatingActionButton property
           Positioned(
             right: 16,
-            bottom: _info != null ? MediaQuery.of(context).size.height * 0.45 : 16,
+            bottom:
+                _info != null ? MediaQuery.of(context).size.height * 0.45 : 16,
             child: FloatingActionButton(
               backgroundColor: GCrabColors.buttonPrimary,
               foregroundColor: GCrabColors.white,
@@ -586,19 +634,25 @@ class _HomePageState extends State<HomePage> {
                               Expanded(
                                 child: Text(
                                   _origin?.infoWindow.title ?? '',
-                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               Text(
                                 'RM ${_currentRide?.details.fare.toStringAsFixed(2) ?? '0.00'}',
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: GCrabColors.buttonPrimary,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: GCrabColors.buttonPrimary,
+                                    ),
                               ),
                             ],
                           ),
@@ -617,16 +671,20 @@ class _HomePageState extends State<HomePage> {
                           const SizedBox(height: 4),
                           // Payment method
                           Text(
-                            'Payment: ${_currentRide?.payment.method ?? ''}'.toUpperCase(),
+                            'Payment: ${_currentRide?.payment.method ?? ''}'
+                                .toUpperCase(),
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                           const Divider(height: 24),
                           // Driver section
                           Text(
                             'Driver',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                           const SizedBox(height: 8),
                           Text(
