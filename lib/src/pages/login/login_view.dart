@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:grab_umh/src/models/driver_model.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:io';
 
 class LoginPage extends StatefulWidget {
@@ -25,6 +26,8 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   List<Driver>? _drivers;
+  final _auth = FirebaseAuth.instance;
+  Driver? driver;
 
   @override
   void initState() {
@@ -34,24 +37,31 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _checkExistingLogin() async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      final file = File('${directory.path}/loginDriver.json');
-      
-      if (await file.exists()) {
-        final content = await file.readAsString();
-        final json = jsonDecode(content);
-        
-        // Check if the file has valid content
-        if (json != null && json.isNotEmpty) {
-          if (mounted) {
-            Navigator.pushReplacementNamed(context, '/home');
-          }
-        }
+    // try {
+    //   final directory = await getApplicationDocumentsDirectory();
+    //   final file = File('${directory.path}/loginDriver.json');
+
+    //   if (await file.exists()) {
+    //     final content = await file.readAsString();
+    //     final json = jsonDecode(content);
+
+    //     // Check if the file has valid content
+    //     if (json != null && json.isNotEmpty) {
+    //       if (mounted) {
+    //         Navigator.pushReplacementNamed(context, '/home');
+    //       }
+    //     }
+    //   }
+    // } catch (e) {
+    //   print('Error checking existing login: $e');
+    //   // If there's an error reading the file, we'll just continue to the login screen
+    // }
+
+    final currentUser = _auth.currentUser;
+    if (currentUser != null) {
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
       }
-    } catch (e) {
-      print('Error checking existing login: $e');
-      // If there's an error reading the file, we'll just continue to the login screen
     }
   }
 
@@ -73,7 +83,7 @@ class _LoginPageState extends State<LoginPage> {
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/loginDriver.json');
       await file.writeAsString(json.encode(driver.toJson()));
-      
+
       // print file content
       final content = await file.readAsString();
       print('File content: $content');
@@ -95,15 +105,50 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
+      // try {
+      //   // Find driver by email
+      //   final driver = _drivers?.firstWhere(
+      //     (d) => d.email == email,
+      //   );
+
+      //   await _saveLoginDriver(driver!);
+      //   if (mounted) {
+      //     Navigator.pushReplacementNamed(context, '/home');
+      //   }
+      // } catch (e) {
+      //   if (mounted) {
+      //     ScaffoldMessenger.of(context).showSnackBar(
+      //       const SnackBar(content: Text('Driver not found')),
+      //     );
+      //   }
+      // }
+
       try {
+        // Sign in with Firebase
+        await _auth.signInWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+
         // Find driver by email
-        final driver = _drivers?.firstWhere(
+        driver = _drivers?.firstWhere(
           (d) => d.email == email,
         );
 
-        await _saveLoginDriver(driver!);
         if (mounted) {
           Navigator.pushReplacementNamed(context, '/home');
+        }
+      } on FirebaseAuthException catch (e) {
+        if (mounted) {
+          String message = 'Authentication failed';
+          if (e.code == 'user-not-found') {
+            message = 'No user found for that email';
+          } else if (e.code == 'wrong-password') {
+            message = 'Wrong password provided';
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(message)),
+          );
         }
       } catch (e) {
         if (mounted) {
