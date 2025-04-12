@@ -1,9 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-Future<String?> detectIntent(String inputText) async {
+Future<String?> detectIntent(String? inputText) async {
   final url = Uri.parse('https://web-production-6e3de.up.railway.app/predict'); // update if needed
 
+  if (inputText == null || inputText.isEmpty) {
+    return null;
+  }
+  
   try {
     final response = await http.post(
       url,

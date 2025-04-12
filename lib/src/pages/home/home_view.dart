@@ -92,12 +92,6 @@ class _HomePageState extends State<HomePage> {
             // Check if widget is still mounted
             _showRideAlert(_pendingRides.first);
             _speakRideDetails(_pendingRides.first); //tts
-
-            // TODO: change based on the intent @mjlee01
-            final detectedIntent = await detectIntent(driverResponse);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Detected intent: $detectedIntent')),
-            );
           }
         });
       }
@@ -123,20 +117,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showRideAlert(RideModel ride) {
-
-  if (!mounted) return;
+    if (!mounted) return;
 
     const int timeoutSeconds = 20; // duration to show pop up
     _progress.value = 1.0; // Use .value to update ValueNotifier
 
-  _timer?.cancel();
-  _timer = Timer.periodic(
-    const Duration(milliseconds: 100),
-    (Timer timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
+    _timer?.cancel();
+    _timer = Timer.periodic(
+      const Duration(milliseconds: 100),
+      (Timer timer) {
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
 
         _progress.value -= (1.0 / (timeoutSeconds * 10));
         if (_progress.value <= 0) {
@@ -151,19 +144,27 @@ class _HomePageState extends State<HomePage> {
     );
 
     final SpeechTranscriber speech = SpeechTranscriber();
-    speech.startListening().then((command) {
+    speech.startListening().then((command) async {
       if (!mounted) return;
-      final normalized = command?.toLowerCase().trim() ?? "";
+      // final normalized = command?.toLowerCase().trim() ?? "";
 
-      if (normalized.contains('accept')) {
+      final detectedIntent = (await detectIntent(command)) ?? '';
+
+      if (detectedIntent == 'accept_order') {
+        // if (normalized.contains('accept')) {
         _timer?.cancel();
         _rideAccepted(ride);
         Navigator.of(context).pop();
-      } else if (normalized.contains('skip') || normalized.contains('reject')) {
+      } else if (detectedIntent == 'reject_order' ||
+          detectedIntent == 'stop_request') {
+        // } else if (normalized.contains('skip') || normalized.contains('reject')) {
         _timer?.cancel();
         _speakRideRejected(ride);
         Navigator.of(context).pop();
       }
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(content: Text('Detected intent: $detectedIntent')),
+      // );
     }).catchError((e) {
       debugPrint('Speech error: $e');
     });
