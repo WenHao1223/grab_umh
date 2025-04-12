@@ -461,39 +461,39 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> _addMarker(LatLng pos) async {
-    if (_origin == null || (_origin != null && _destination != null)) {
-      setState(() {
-        _origin = Marker(
-          markerId: const MarkerId('origin'),
-          infoWindow: const InfoWindow(title: 'Origin'),
-          icon:
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-          position: pos,
-        );
-        _destination = null;
-        _info = null;
-      });
-    } else {
-      setState(() {
-        _destination = Marker(
-          markerId: const MarkerId('destination'),
-          infoWindow: const InfoWindow(title: 'Destination'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-          position: pos,
-        );
-      });
+  // Future<void> _addMarker(LatLng pos) async {
+  //   if (_origin == null || (_origin != null && _destination != null)) {
+  //     setState(() {
+  //       _origin = Marker(
+  //         markerId: const MarkerId('origin'),
+  //         infoWindow: const InfoWindow(title: 'Origin'),
+  //         icon:
+  //             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+  //         position: pos,
+  //       );
+  //       _destination = null;
+  //       _info = null;
+  //     });
+  //   } else {
+  //     setState(() {
+  //       _destination = Marker(
+  //         markerId: const MarkerId('destination'),
+  //         infoWindow: const InfoWindow(title: 'Destination'),
+  //         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+  //         position: pos,
+  //       );
+  //     });
 
-      final directionsRepo = DirectionsRepository(dio: Dio());
-      final directions = await directionsRepo.getDirections(
-        origin: _origin!.position,
-        destination: pos,
-      );
-      setState(() {
-        _info = directions;
-      });
-    }
-  }
+  //     final directionsRepo = DirectionsRepository(dio: Dio());
+  //     final directions = await directionsRepo.getDirections(
+  //       origin: _origin!.position,
+  //       destination: pos,
+  //     );
+  //     setState(() {
+  //       _info = directions;
+  //     });
+  //   }
+  // }
 
   @override
   void dispose() {
