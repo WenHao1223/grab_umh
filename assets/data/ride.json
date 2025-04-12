@@ -1,6 +1,6 @@
 [
   {
-    "rideId": "1",
+    "rideId": "q56gKGeM3LXA3M16aSQ6",
     "details": {
       "distance": "5.0 km",
       "fare": 20.0,
@@ -26,14 +26,11 @@
         "name": "Penang Botanical Gardens"
       }
     },
-    "driver": {
-      "id": "D123",
-      "name": "John Doe"
-    },
+    "driver": "cNWCkd676teB7LKDlHAeE26X6hJ3",
     "car": {
       "id": "C456",
       "name": "Toyota Camry",
-      "color": "Blue",
+      "color": "blue",
       "plate": "ABC123"
     },
     "passenger": {
@@ -54,7 +51,7 @@
     }
   },
   {
-    "rideId": "2",
+    "rideId": "cUgBFQeV9GlhyX9Z7tay",
     "details": {
       "distance": "3.5 km",
       "fare": 15.0,
@@ -80,10 +77,7 @@
         "name": "Gurney Plaza"
       }
     },
-    "driver": {
-      "id": null,
-      "name": null
-    },
+    "driver": null,
     "car": {
       "id": null,
       "name": null,
@@ -108,7 +102,7 @@
     }
   },
   {
-    "rideId": "3",
+    "rideId": "PWGtJcn0sfA9eq4NGg22",
     "details": {
       "distance": "7.0 km",
       "fare": 30.0,
