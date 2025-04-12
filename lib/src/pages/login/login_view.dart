@@ -30,7 +30,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('G Crab'), actions: [
+      appBar: AppBar(actions: [
         IconButton(
           icon: const Icon(Icons.settings),
           onPressed: () {
