@@ -27,6 +27,40 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: const Text('GCrab'), actions: [
+        TextButton(
+          onPressed: () {
+            if (_origin != null) {
+              _googleMapController?.animateCamera(
+                CameraUpdate.newCameraPosition(
+                  CameraPosition(
+                    target: _origin!.position,
+                    zoom: 14.5,
+                    tilt: 50.0,
+                  ),
+                ),
+              );
+            }
+          },
+          child: const Text('ORIGIN'),
+        ),
+        TextButton(
+          onPressed: () {
+            if (_origin != null) {
+              _googleMapController?.animateCamera(
+                CameraUpdate.newCameraPosition(
+                  CameraPosition(
+                    target: _destination!.position,
+                    zoom: 14.5,
+                    tilt: 50.0,
+                  ),
+                ),
+              );
+            }
+          },
+          child: const Text('DEST'),
+        ),
+      ]),
       body: GoogleMap(
         mapType: MapType.normal,
         initialCameraPosition: _kGooglePlex,
@@ -74,8 +108,7 @@ class _HomePageState extends State<HomePage> {
         _destination = Marker(
           markerId: const MarkerId('destination'),
           infoWindow: const InfoWindow(title: 'Destination'),
-          icon:
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
           position: pos,
         );
       });
