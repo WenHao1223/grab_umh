@@ -126,7 +126,7 @@ class _LoginPageState extends State<LoginPage> {
                 // Title Section
                 const GCrabSpacing.height(GCrabSizes.spaceBtwSections),
                 const Text(
-                  'GCrab',
+                  'Crab',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -187,7 +187,7 @@ class _LoginPageState extends State<LoginPage> {
                       // Sign Up Button
                       GCrabOutlinedButton(
                         height: 50,
-                        text: 'New to GCrab? Sign up!',
+                        text: 'New to Crab? Sign up!',
                         onPressed: () {
                           // TODO: Implement navigation to sign up page
                           print('Navigate to Sign Up');
