@@ -16,6 +16,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   GoogleMapController? _googleMapController;
+  Marker? _origin;
+  Marker? _destination;
 
   static const CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(5.285153, 100.456238),
@@ -33,6 +35,11 @@ class _HomePageState extends State<HomePage> {
             _googleMapController = controller;
           });
         },
+        markers: {
+          if (_origin != null) _origin!,
+          if (_destination != null) _destination!,
+        },
+        onLongPress: _addMarker,
         myLocationEnabled: true,
         myLocationButtonEnabled: true,
         zoomControlsEnabled: true,
@@ -48,6 +55,31 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  void _addMarker(LatLng pos) {
+    if (_origin == null || (_origin != null && _destination != null)) {
+      setState(() {
+        _origin = Marker(
+          markerId: const MarkerId('origin'),
+          infoWindow: const InfoWindow(title: 'Origin'),
+          icon:
+              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          position: pos,
+        );
+        _destination = null;
+      });
+    } else {
+      setState(() {
+        _destination = Marker(
+          markerId: const MarkerId('destination'),
+          infoWindow: const InfoWindow(title: 'Destination'),
+          icon:
+              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          position: pos,
+        );
+      });
+    }
   }
 
   @override
