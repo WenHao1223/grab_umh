@@ -11,11 +11,14 @@ import 'package:grab_umh/src/modules/directions_model.dart';
 import 'package:grab_umh/src/modules/directions_repository.dart';
 import 'package:grab_umh/src/settings/settings_view.dart';
 import 'package:grab_umh/src/stt/speech_transcriber';
+import 'package:grab_umh/src/stt/speech_transcriber';
 import 'package:grab_umh/src/utils/constants/colors.dart';
 import 'package:grab_umh/src/utils/api/intent_classifier_api.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:flutter_tts/flutter_tts.dart'; //tts
+
+import 'package:grab_umh/src/pages/chat/chat.dart';
 
 import 'package:grab_umh/src/pages/chat/chat.dart';
 
@@ -31,6 +34,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final SpeechTranscriber speechTranscriber = SpeechTranscriber();
+  String? _recognizedText;
+
   final SpeechTranscriber speechTranscriber = SpeechTranscriber();
   String? _recognizedText;
 
@@ -127,19 +133,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showRideAlert(RideModel ride) {
-    if (!mounted) return;
+
+  if (!mounted) return;
 
     const int timeoutSeconds = 20; // duration to show pop up
     _progress.value = 1.0; // Use .value to update ValueNotifier
 
-    _timer?.cancel();
-    _timer = Timer.periodic(
-      const Duration(milliseconds: 100),
-      (Timer timer) {
-        if (!mounted) {
-          timer.cancel();
-          return;
-        }
+  _timer?.cancel();
+  _timer = Timer.periodic(
+    const Duration(milliseconds: 100),
+    (Timer timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
 
         _progress.value -= (1.0 / (timeoutSeconds * 10));
         if (_progress.value <= 0) {
