@@ -1,6 +1,6 @@
 [
   {
-    "rideId": "1",
+    "rideId": "q56gKGeM3LXA3M16aSQ6",
     "details": {
       "distance": "5.0 km",
       "fare": 20.0,
@@ -26,14 +26,11 @@
         "name": "Penang Botanical Gardens"
       }
     },
-    "driver": {
-      "id": "D123",
-      "name": "John Doe"
-    },
+    "driver": "cNWCkd676teB7LKDlHAeE26X6hJ3",
     "car": {
       "id": "C456",
       "name": "Toyota Camry",
-      "color": "Blue",
+      "color": "blue",
       "plate": "ABC123"
     },
     "passenger": {
@@ -54,7 +51,7 @@
     }
   },
   {
-    "rideId": "2",
+    "rideId": "cUgBFQeV9GlhyX9Z7tay",
     "details": {
       "distance": "3.5 km",
       "fare": 15.0,
@@ -80,10 +77,7 @@
         "name": "Gurney Plaza"
       }
     },
-    "driver": {
-      "id": null,
-      "name": null
-    },
+    "driver": null,
     "car": {
       "id": null,
       "name": null,
@@ -108,7 +102,7 @@
     }
   },
   {
-    "rideId": "3",
+    "rideId": "PWGtJcn0sfA9eq4NGg22",
     "details": {
       "distance": "7.0 km",
       "fare": 30.0,
@@ -134,10 +128,7 @@
         "name": "Kek Lok Si Temple"
       }
     },
-    "driver": {
-      "id": null,
-      "name": null
-    },
+    "driver": null,
     "car": {
       "id": null,
       "name": null,
@@ -147,6 +138,57 @@
     "passenger": {
       "id": "P791",
       "name": "Alice Wong"
+    },
+    "payment": {
+      "method": "credit_card",
+      "status": "pending"
+    },
+    "rating": {
+      "driver": null,
+      "passenger": null
+    },
+    "feedback": {
+      "driver": null,
+      "passenger": null
+    }
+  },
+  {
+    "rideId": "LaDhkIr5CpbZMdp3C1GI",
+    "details": {
+      "distance": "8.0 km",
+      "fare": 35.0,
+      "pax": 2,
+      "status": "pending",
+      "orderTime": "2023-10-01T13:00:00Z",
+      "fetchTime": null,
+      "dropTime": null
+    },
+    "locations": {
+      "start": {
+        "location": {
+          "lat": 5.4300,
+          "lng": 100.3400
+        },
+        "name": "Penang International Airport"
+      },
+      "drop": {
+        "location": {
+          "lat": 5.4200,
+          "lng": 100.3300
+        },
+        "name": "Queensbay Mall"
+      }
+    },
+    "driver": null,
+    "car": {
+      "id": null,
+      "name": null,
+      "color": null,
+      "plate": null
+    },
+    "passenger": {
+      "id": "P792",
+      "name": "John Doe"
     },
     "payment": {
       "method": "credit_card",

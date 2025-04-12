@@ -1,0 +1,2 @@
+D:/github-project/grab_umh/android/app/.cxx/Debug/43d2q6q5/x86_64/CMakeFiles/edit_cache.dir
+D:/github-project/grab_umh/android/app/.cxx/Debug/43d2q6q5/x86_64/CMakeFiles/rebuild_cache.dir

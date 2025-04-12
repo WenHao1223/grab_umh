@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:grab_umh/src/settings/settings_view.dart';
 import 'package:grab_umh/src/utils/constants/sizes.dart';
 import 'package:grab_umh/src/components/component.dart';
-import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:grab_umh/src/models/driver_model.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -25,62 +22,71 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   List<Driver>? _drivers;
+  final _auth = FirebaseAuth.instance;
+  Driver? driver;
 
   @override
   void initState() {
     super.initState();
-    _loadDrivers();
+    // _loadDrivers();
+    _checkExistingLogin();
   }
 
-  Future<void> _loadDrivers() async {
-    try {
-      final String jsonString =
-          await rootBundle.loadString('assets/data/drivers.json');
-      final List<dynamic> jsonList = json.decode(jsonString);
-      setState(() {
-        _drivers = jsonList.map((json) => Driver.fromJson(json)).toList();
-      });
-    } catch (e) {
-      print('Error loading drivers: $e');
-    }
+  Future<void> _checkExistingLogin() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final currentUser = _auth.currentUser;
+      print("Current user --------- ");
+      print(currentUser);
+      if (currentUser != null && mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    });
   }
 
-  Future<void> _saveLoginDriver(Driver driver) async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      final file = File('${directory.path}/loginDriver.json');
-      await file.writeAsString(json.encode(driver.toJson()));
-      
-      // print file content
-      final content = await file.readAsString();
-      print('File content: $content');
-    } catch (e) {
-      throw 'Error saving login driver: $e';
-    }
-  }
+  // Future<void> _loadDrivers() async {
+  //   try {
+  //     final String jsonString =
+  //         await rootBundle.loadString('assets/data/drivers.json');
+  //     final List<dynamic> jsonList = json.decode(jsonString);
+  //     setState(() {
+  //       _drivers = jsonList.map((json) => Driver.fromJson(json)).toList();
+  //     });
+  //   } catch (e) {
+  //     throw 'Error loading drivers: $e';
+  //   }
+  // }
 
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       final email = _emailController.text;
       final password = _passwordController.text;
 
-      // Hardcoded password check
-      if (password != 'password123') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid password')),
-        );
-        return;
-      }
-
       try {
+        // Sign in with Firebase
+        await _auth.signInWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+
         // Find driver by email
-        final driver = _drivers?.firstWhere(
+        driver = _drivers?.firstWhere(
           (d) => d.email == email,
         );
 
-        await _saveLoginDriver(driver!);
         if (mounted) {
           Navigator.pushReplacementNamed(context, '/home');
+        }
+      } on FirebaseAuthException catch (e) {
+        if (mounted) {
+          String message = 'Authentication failed';
+          if (e.code == 'user-not-found') {
+            message = 'No user found for that email';
+          } else if (e.code == 'wrong-password') {
+            message = 'Wrong password provided';
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(message)),
+          );
         }
       } catch (e) {
         if (mounted) {
