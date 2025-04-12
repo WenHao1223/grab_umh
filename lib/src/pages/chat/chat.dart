@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:grab_umh/src/stt/speech_transcriber';
 import 'package:uuid/uuid.dart';
 import 'dart:math';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -16,19 +17,13 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   List<types.Message> _messages = [];
-  final FlutterTts _flutterTts = FlutterTts(); // TTS instance
+  final FlutterTts _flutterTts = FlutterTts();
+  final SpeechTranscriber _transcriber = SpeechTranscriber();
 
-  final types.User _user = const types.User(
-    id: 'user-id',
-    firstName: 'User',
-    //imageUrl: 'https://via.placeholder.com/150',
-  );
+  bool _isMicMode = true;
 
-  final types.User _botUser = const types.User(
-    id: 'bot-id',
-    firstName: 'Bot',
-    //imageUrl: 'https://via.placeholder.com/150/FF0000/FFFFFF?Text=Bot',
-  );
+  final types.User _user = const types.User(id: 'user-id', firstName: 'User');
+  final types.User _botUser = const types.User(id: 'bot-id', firstName: 'Bot');
 
   @override
   void initState() {
@@ -48,7 +43,7 @@ class _ChatPageState extends State<ChatPage> {
       _messages = [welcome];
     });
 
-    _speak(welcome.text); // Speak initial message
+    _speak(welcome.text);
   }
 
   void _handleSendPressed(types.PartialText message) {
@@ -77,7 +72,7 @@ class _ChatPageState extends State<ChatPage> {
         _messages.insert(0, botReply);
       });
 
-      await _speak(replyText); // Bot speaks the reply
+      await _speak(replyText);
     });
   }
 
@@ -95,13 +90,71 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> _speak(String text) async {
     await _flutterTts.setLanguage("en-US");
     await _flutterTts.setPitch(1.0);
-    await _flutterTts.setSpeechRate(0.5); // Optional: slower speech
+    await _flutterTts.setSpeechRate(0.5);
     await _flutterTts.speak(text);
+  }
+
+  Future<void> _startSpeechToText() async {
+    String? finalResult;
+    bool isCompleted = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            if (!_transcriber.isListening && !isCompleted) {
+              _transcriber.startListening().then((result) async {
+                finalResult = result;
+                isCompleted = true;
+
+                // Wait a short period (like a user pause)
+                await Future.delayed(const Duration(seconds: 2));
+
+                // Close the dialog if it's still open
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop();
+                }
+
+                // Send message if not empty
+                if (finalResult != null && finalResult!.trim().isNotEmpty) {
+                  _transcriber.stopListening;
+                  _handleSendPressed(
+                    types.PartialText(text: finalResult!.trim()),
+                  );
+                }
+              });
+            }
+
+            return AlertDialog(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text("Listening..."),
+                  const SizedBox(height: 20),
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      _transcriber.stopListening();
+                      Navigator.of(context).pop();
+                    },
+                    icon: const Icon(Icons.stop),
+                    label: const Text("Cancel"),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
   void dispose() {
-    _flutterTts.stop(); // Prevent memory leaks
+    _flutterTts.stop();
     super.dispose();
   }
 
@@ -115,6 +168,7 @@ class _ChatPageState extends State<ChatPage> {
         messages: _messages,
         onSendPressed: _handleSendPressed,
         user: _user,
+        customBottomWidget: _buildCustomInput(),
         theme: DefaultChatTheme(
           primaryColor: primaryColor,
           sentMessageBodyTextStyle: const TextStyle(color: Colors.white),
@@ -122,9 +176,55 @@ class _ChatPageState extends State<ChatPage> {
           receivedMessageBodyTextStyle: const TextStyle(color: Colors.black87),
           inputTextColor: Colors.black,
           inputBackgroundColor: Colors.white,
-          sendButtonIcon: Icon(Icons.send, color: primaryColor),
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         ),
+      ),
+    );
+  }
+
+  Widget _buildCustomInput() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: [
+          if (_isMicMode)
+            Expanded(
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                onPressed: _startSpeechToText,
+                icon: const Icon(Icons.mic),
+                label: const Text("Hold to talk"),
+              ),
+            )
+          else
+            Expanded(
+              child: TextField(
+                onSubmitted: (value) {
+                  if (value.trim().isEmpty) return;
+                  _handleSendPressed(types.PartialText(text: value.trim()));
+                },
+                decoration: InputDecoration(
+                  hintText: "Type your message...",
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: Icon(_isMicMode ? Icons.keyboard : Icons.mic),
+            onPressed: () {
+              setState(() {
+                _isMicMode = !_isMicMode;
+              });
+            },
+          ),
+        ],
       ),
     );
   }
