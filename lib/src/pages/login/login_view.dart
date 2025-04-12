@@ -50,8 +50,12 @@ class _LoginPageState extends State<LoginPage> {
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/loginDriver.json');
       await file.writeAsString(json.encode(driver.toJson()));
+      
+      // print file content
+      final content = await file.readAsString();
+      print('File content: $content');
     } catch (e) {
-      print('Error saving login driver: $e');
+      throw 'Error saving login driver: $e';
     }
   }
 
@@ -68,18 +72,17 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      // Find driver by email
-      final driver = _drivers?.firstWhere(
-        (d) => d.email == email,
-        orElse: () => throw Exception('Driver not found'),
-      );
+      try {
+        // Find driver by email
+        final driver = _drivers?.firstWhere(
+          (d) => d.email == email,
+        );
 
-      if (driver != null) {
-        await _saveLoginDriver(driver);
+        await _saveLoginDriver(driver!);
         if (mounted) {
           Navigator.pushReplacementNamed(context, '/home');
         }
-      } else {
+      } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Driver not found')),
