@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "259430226986",
+    "project_id": "grab-umh-dcc8e",
+    "storage_bucket": "grab-umh-dcc8e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:259430226986:android:a44ea2584e2c43d2c2b753",
+        "android_client_info": {
+          "package_name": "com.example.grab_umh"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDi7gYhBzirqgahDN6HniLlx8ykMZJdh4w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
