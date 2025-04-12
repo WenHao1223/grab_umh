@@ -9,7 +9,10 @@ Crab is a hands-free AI assistant designed specifically for Grab ride-hailing dr
 >
 > Crab - Grab AI Assistant was built to solve exactly that. It brings voice-first interaction into the Grab experience, creating a seamless, hands-free ride acceptance system powered by AI.
 
----
+
+## 📊 Presentation Slides
+https://www.canva.com/design/DAGkbflqCYs/H-L3X4Qx_2JKKvEUUG_L9w/view?utm_content=DAGkbflqCYs&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5286498e33
+
 
 ## ✨ Features
 
@@ -24,15 +27,14 @@ Crab is a hands-free AI assistant designed specifically for Grab ride-hailing dr
 
 - 🔐 **Secure Firebase Authentication**  
   Ensures a secure and scalable backend for user management and ride details.
-
----
+  
 
 ## 📱 Target Platform
 
 - ✅ Android  
 - ✅ iOS  
 
----
+
 ## 🖼️ UI Preview
 ![image](https://github.com/user-attachments/assets/2b181385-d78a-4cc3-9de3-1b2780310444)
 ![image](https://github.com/user-attachments/assets/2990911a-b90d-4e66-aa9b-d01cf390e0c8)
@@ -56,7 +58,4 @@ flutter pub get
 ```bash
 flutter run
 ```
-⚠️ Make sure microphone permission is granted and speech-to-text is supported on the device.
-
-## 📊 Presentation Slides
-https://www.canva.com/design/DAGkbflqCYs/H-L3X4Qx_2JKKvEUUG_L9w/view?utm_content=DAGkbflqCYs&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h5286498e33
+>⚠️ Make sure microphone permission is granted and speech-to-text is supported on the device.
