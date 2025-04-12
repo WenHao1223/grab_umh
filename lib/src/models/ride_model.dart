@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class RideModel {
   final String rideId;
   final RideDetails details;
@@ -26,7 +28,7 @@ class RideDetails {
   final double fare;
   final int pax;
   final String status;
-  final String orderTime;
+  final Timestamp orderTime;
 
   RideDetails({
     required this.distance,

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' show min, pi;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:grab_umh/src/models/ride_model.dart';
 import 'package:dio/dio.dart';
@@ -60,17 +61,33 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadRideData() async {
     try {
-      final String jsonString =
-          await rootBundle.loadString('assets/data/ride.json');
+      // final String jsonString =
+      //     await rootBundle.loadString('assets/data/ride.json');
 
-      final List<dynamic> jsonList = json.decode(jsonString);
-      _rides = jsonList.map((json) => RideModel.fromJson(json)).toList();
+      // final List<dynamic> jsonList = json.decode(jsonString);
+      // _rides = jsonList.map((json) => RideModel.fromJson(json)).toList();
 
       // Find pending rides
-      final pendingRides =
-          _rides?.where((ride) => ride.details.status == 'pending').toList();
+      // final pendingRides =
+      //     _rides?.where((ride) => ride.details.status == 'pending').toList();
 
-      if (pendingRides != null && pendingRides.isNotEmpty) {
+      final ridesSnapshot = await FirebaseFirestore.instance
+          .collection('rides')
+          .where('details.status', isEqualTo: 'pending')
+          .get();
+        
+      final pendingRides = ridesSnapshot.docs.map((doc) {
+        final data = doc.data();
+        print("Data: ");
+        print(data);
+        data['rideId'] = doc.id;
+        return RideModel.fromJson(data);
+      }).toList();
+
+      print("pending rides:");
+      print(pendingRides.first);
+
+      if (pendingRides.isNotEmpty) {
         // Show ride alert after 5 seconds
         Future.delayed(const Duration(seconds: 2), () {
           // TODO: change based on the intent @mjlee01

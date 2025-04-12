@@ -30,7 +30,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    _loadDrivers();
+    // _loadDrivers();
     _checkExistingLogin();
   }
 
@@ -43,18 +43,18 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  Future<void> _loadDrivers() async {
-    try {
-      final String jsonString =
-          await rootBundle.loadString('assets/data/drivers.json');
-      final List<dynamic> jsonList = json.decode(jsonString);
-      setState(() {
-        _drivers = jsonList.map((json) => Driver.fromJson(json)).toList();
-      });
-    } catch (e) {
-      throw 'Error loading drivers: $e';
-    }
-  }
+  // Future<void> _loadDrivers() async {
+  //   try {
+  //     final String jsonString =
+  //         await rootBundle.loadString('assets/data/drivers.json');
+  //     final List<dynamic> jsonList = json.decode(jsonString);
+  //     setState(() {
+  //       _drivers = jsonList.map((json) => Driver.fromJson(json)).toList();
+  //     });
+  //   } catch (e) {
+  //     throw 'Error loading drivers: $e';
+  //   }
+  // }
 
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
