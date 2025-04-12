@@ -28,7 +28,8 @@ class _HomePageState extends State<HomePage> {
   Marker? _destination;
   Directions? _info;
   Timer? _timer;
-  double _progress = 1.0;
+  // Change _progress to be a ValueNotifier
+  final ValueNotifier<double> _progress = ValueNotifier(1.0);
   List<RideModel>? _rides;
 
   static const CameraPosition _kGooglePlex = CameraPosition(
@@ -47,18 +48,22 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadRideData() async {
     try {
-      final String jsonString = await rootBundle.loadString('assets/data/ride.json');
-      
+      final String jsonString =
+          await rootBundle.loadString('assets/data/ride.json');
+
       final List<dynamic> jsonList = json.decode(jsonString);
       _rides = jsonList.map((json) => RideModel.fromJson(json)).toList();
-    
+
       // Find pending rides
-      final pendingRides = _rides?.where((ride) => ride.details.status == 'pending').toList();
-      
+      final pendingRides =
+          _rides?.where((ride) => ride.details.status == 'pending').toList();
+
       if (pendingRides != null && pendingRides.isNotEmpty) {
         // Show ride alert after 5 seconds
-        Future.delayed(const Duration(seconds: 5), () {
-          if (mounted) { // Check if widget is still mounted
+        Future.delayed(const Duration(seconds: 2), () {
+          // TODO: change based on the intent @mjlee01
+          if (mounted) {
+            // Check if widget is still mounted
             _showRideAlert(pendingRides.first);
           }
         });
@@ -69,11 +74,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showRideAlert(RideModel ride) {
-    if (!mounted) return; // Check if widget is still mounted
-    
+    if (!mounted) return;
+
     const int timeoutSeconds = 5;
-    _progress = 1.0;
-    
+    _progress.value = 1.0;  // Use .value to update ValueNotifier
+
     _timer?.cancel();
     _timer = Timer.periodic(
       const Duration(milliseconds: 100),
@@ -82,14 +87,14 @@ class _HomePageState extends State<HomePage> {
           timer.cancel();
           return;
         }
-        setState(() {
-          // Update progress to decrease from 1.0 to 0.0 over timeoutSeconds
-          _progress = (_progress - 0.1 / timeoutSeconds).clamp(0.0, 1.0);
-          if (_progress <= 0) {
-            timer.cancel();
-            Navigator.of(context).pop();
-          }
-        });
+
+        // Update the ValueNotifier directly
+        _progress.value = _progress.value - (1.0 / (timeoutSeconds * 10));
+        if (_progress.value <= 0) {
+          _progress.value = 0;
+          timer.cancel();
+          Navigator.of(context).pop();
+        }
       },
     );
 
@@ -97,93 +102,103 @@ class _HomePageState extends State<HomePage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return PopScope(
-          child: AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('New Ride Request'),
-                IconButton(
-                  icon: const Icon(Icons.close, color: Colors.grey),
-                  onPressed: () {
-                    _timer?.cancel();
-                    Navigator.of(context).pop();
-                  },
+        return StatefulBuilder(
+          builder: (context, setDialogState) {  // Rename setState to setDialogState for clarity
+            return PopScope(
+              child: AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
                 ),
-              ],
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Distance: ${ride.details.distance}'),
-                const SizedBox(height: 8),
-                Text('Fare: RM ${ride.details.fare.toStringAsFixed(2)}'),
-                const SizedBox(height: 8),
-                Text('Drop-off: ${ride.locations.drop.name}'),
-                const SizedBox(height: 16),
-                LinearProgressIndicator(
-                  value: _progress,
-                  backgroundColor: Colors.grey[200],
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    GCrabColors.buttonPrimary,
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: GCrabColors.buttonPrimary),
-                        ),
-                        onPressed: () {
-                          _timer?.cancel();
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text('Skip Ride'),
-                      ),
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('New Ride Request'),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.grey),
+                      onPressed: () {
+                        _timer?.cancel();
+                        Navigator.of(context).pop();
+                      },
                     ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: CustomPaint(
-                        painter: BorderPainter(
-                          progress: _progress,
-                          color: GCrabColors.darkGrey,
+                  ],
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Distance: ${ride.details.distance}'),
+                    const SizedBox(height: 8),
+                    Text('Fare: RM ${ride.details.fare.toStringAsFixed(2)}'),
+                    const SizedBox(height: 8),
+                    Text('Drop-off: ${ride.locations.drop.name}'),
+                    const SizedBox(height: 16),
+                    ValueListenableBuilder<double>(
+                      valueListenable: _progress,
+                      builder: (context, value, child) {
+                        return LinearProgressIndicator(
+                          value: value,
+                          backgroundColor: Colors.grey[200],
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            GCrabColors.buttonPrimary,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                actions: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              side:
+                                  BorderSide(color: GCrabColors.buttonPrimary),
+                            ),
+                            onPressed: () {
+                              _timer?.cancel();
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('Skip Ride'),
+                          ),
                         ),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: GCrabColors.buttonPrimary,
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size.fromHeight(40),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: CustomPaint(
+                            painter: BorderPainter(
+                              progress: _progress.value,
+                              color: GCrabColors.darkGrey,
+                            ),
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: GCrabColors.buttonPrimary,
+                                foregroundColor: Colors.white,
+                                minimumSize: const Size.fromHeight(40),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                              ),
+                              onPressed: () {
+                                _timer?.cancel();
+                                // Handle ride acceptance here
+                                Navigator.of(context).pop();
+                              },
+                              child: const Text('Accept Ride'),
                             ),
                           ),
-                          onPressed: () {
-                            _timer?.cancel();
-                            // Handle ride acceptance here
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('Accept Ride'),
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     ).then((_) {
@@ -349,13 +364,14 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _timer?.cancel();
+    _progress.dispose();  // Don't forget to dispose the ValueNotifier
     _googleMapController?.dispose();
     super.dispose();
   }
 }
 
 class BorderPainter extends CustomPainter {
-  final double progress;
+  final double progress;  // Keep this as double, not ValueNotifier
   final Color color;
 
   BorderPainter({required this.progress, required this.color});
@@ -369,23 +385,23 @@ class BorderPainter extends CustomPainter {
 
     final path = Path();
     const radius = 5.0;
-    
+
     // Calculate the total length of the border
     final perimeter = (size.width + size.height) * 2;
     final currentLength = perimeter * progress;
 
     // Start from top-left
     path.moveTo(radius, 0);
-    
+
     var remainingLength = currentLength;
-    
+
     // Top line
     if (remainingLength > 0) {
       final lineLength = min(size.width - radius * 2, remainingLength);
       path.lineTo(lineLength + radius, 0);
       remainingLength -= lineLength;
     }
-    
+
     // Top-right corner
     if (remainingLength > 0) {
       path.arcToPoint(
@@ -395,14 +411,14 @@ class BorderPainter extends CustomPainter {
       );
       remainingLength -= radius * pi / 2;
     }
-    
+
     // Right line
     if (remainingLength > 0) {
       final lineLength = min(size.height - radius * 2, remainingLength);
       path.lineTo(size.width, lineLength + radius);
       remainingLength -= lineLength;
     }
-    
+
     // Bottom-right corner
     if (remainingLength > 0) {
       path.arcToPoint(
@@ -412,14 +428,14 @@ class BorderPainter extends CustomPainter {
       );
       remainingLength -= radius * pi / 2;
     }
-    
+
     // Bottom line
     if (remainingLength > 0) {
       final lineLength = min(size.width - radius * 2, remainingLength);
       path.lineTo(size.width - lineLength - radius, size.height);
       remainingLength -= lineLength;
     }
-    
+
     // Bottom-left corner
     if (remainingLength > 0) {
       path.arcToPoint(
@@ -429,14 +445,14 @@ class BorderPainter extends CustomPainter {
       );
       remainingLength -= radius * pi / 2;
     }
-    
+
     // Left line
     if (remainingLength > 0) {
       final lineLength = min(size.height - radius * 2, remainingLength);
       path.lineTo(0, size.height - lineLength - radius);
       remainingLength -= lineLength;
     }
-    
+
     // Top-left corner
     if (remainingLength > 0) {
       path.arcToPoint(
