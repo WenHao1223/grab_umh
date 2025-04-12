@@ -18,6 +18,7 @@ dependencies:
   flutter_polyline_points: ^2.1.0
   google_fonts: ^6.2.1
   google_maps_flutter: ^2.12.1
+  path_provider: ^2.1.5
 
 dev_dependencies:
   flutter_test:
@@ -34,5 +35,6 @@ flutter:
   assets:
     # Add assets from the images directory to the application.
     - assets/images/
+    - assets/data/drivers.json
     - assets/data/ride.json
     - assets/data/loginDriver.json

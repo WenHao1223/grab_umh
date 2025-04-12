@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:grab_umh/src/settings/settings_view.dart';
 import 'package:grab_umh/src/utils/constants/sizes.dart';
 import 'package:grab_umh/src/components/component.dart';
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:grab_umh/src/models/driver_model.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
-  static const routeName = '/login';
+  static const routeName = '/';
 
   @override
   State<StatefulWidget> createState() {
@@ -19,6 +24,70 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
+  List<Driver>? _drivers;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDrivers();
+  }
+
+  Future<void> _loadDrivers() async {
+    try {
+      final String jsonString =
+          await rootBundle.loadString('assets/data/drivers.json');
+      final List<dynamic> jsonList = json.decode(jsonString);
+      setState(() {
+        _drivers = jsonList.map((json) => Driver.fromJson(json)).toList();
+      });
+    } catch (e) {
+      print('Error loading drivers: $e');
+    }
+  }
+
+  Future<void> _saveLoginDriver(Driver driver) async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/loginDriver.json');
+      await file.writeAsString(json.encode(driver.toJson()));
+    } catch (e) {
+      print('Error saving login driver: $e');
+    }
+  }
+
+  Future<void> _handleLogin() async {
+    if (_formKey.currentState!.validate()) {
+      final email = _emailController.text;
+      final password = _passwordController.text;
+
+      // Hardcoded password check
+      if (password != 'password123') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid password')),
+        );
+        return;
+      }
+
+      // Find driver by email
+      final driver = _drivers?.firstWhere(
+        (d) => d.email == email,
+        orElse: () => throw Exception('Driver not found'),
+      );
+
+      if (driver != null) {
+        await _saveLoginDriver(driver);
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Driver not found')),
+          );
+        }
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -101,13 +170,7 @@ class _LoginPageState extends State<LoginPage> {
                       // Login Button
                       GCrabPrimaryButton(
                         text: 'Login',
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            // TODO: Implement login logic
-                            print('Email: ${_emailController.text}');
-                            print('Password: ${_passwordController.text}');
-                          }
-                        },
+                        onPressed: _handleLogin,
                       ),
 
                       const GCrabSpacing.height(GCrabSizes.gridViewSpacing),

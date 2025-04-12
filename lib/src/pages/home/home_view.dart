@@ -14,7 +14,7 @@ import 'package:grab_umh/src/utils/constants/colors.dart';
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
-  static const routeName = "/";
+  static const routeName = "/home";
 
   @override
   State<StatefulWidget> createState() {

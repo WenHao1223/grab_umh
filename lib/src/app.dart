@@ -6,7 +6,7 @@ import 'package:grab_umh/src/pages/login/login_view.dart';
 import 'package:grab_umh/src/utils/themes/theme.dart';
 
 import 'sample_feature/sample_item_details_view.dart';
-import 'sample_feature/sample_item_list_view.dart';
+// import 'sample_feature/sample_item_list_view.dart';
 import 'settings/settings_controller.dart';
 import 'settings/settings_view.dart';
 
@@ -78,11 +78,12 @@ class MyApp extends StatelessWidget {
                     return SettingsView(controller: settingsController);
                   case SampleItemDetailsView.routeName:
                     return const SampleItemDetailsView();
-                  case SampleItemListView.routeName:
-                  default:
-                    // return const LoginPage();
+                  // case SampleItemListView.routeName:
+                  //   return const SampleItemListView();
+                  case HomePage.routeName:
                     return const HomePage();
-                    // return const SampleItemListView();
+                  default:
+                    return const LoginPage();
                 }
               },
             );
