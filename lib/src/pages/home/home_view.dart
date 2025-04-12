@@ -44,6 +44,8 @@ class _HomePageState extends State<HomePage> {
   // Change _progress to be a ValueNotifier
   final ValueNotifier<double> _progress = ValueNotifier(1.0);
   List<RideModel>? _rides;
+  // Add this to store pending rides
+  List<RideModel> _pendingRides = [];
 
   static const CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(5.285153, 100.456238),
@@ -61,40 +63,22 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadRideData() async {
     try {
-      // final String jsonString =
-      //     await rootBundle.loadString('assets/data/ride.json');
-
-      // final List<dynamic> jsonList = json.decode(jsonString);
-      // _rides = jsonList.map((json) => RideModel.fromJson(json)).toList();
-
-      // Find pending rides
-      // final pendingRides =
-      //     _rides?.where((ride) => ride.details.status == 'pending').toList();
-
       final ridesSnapshot = await FirebaseFirestore.instance
           .collection('rides')
           .where('details.status', isEqualTo: 'pending')
           .get();
 
-      final pendingRides = ridesSnapshot.docs.map((doc) {
+      _pendingRides = ridesSnapshot.docs.map((doc) {
         final data = doc.data();
-        print("Data: ");
-        print(data);
         data['rideId'] = doc.id;
         return RideModel.fromJson(data);
       }).toList();
 
-      print("pending rides:");
-      print(pendingRides.first);
-
-      if (pendingRides.isNotEmpty) {
-        // Show ride alert after 5 seconds
+      if (_pendingRides.isNotEmpty) {
         Future.delayed(const Duration(seconds: 2), () {
-          // TODO: change based on the intent @mjlee01
           if (mounted) {
-            // Check if widget is still mounted
-            _showRideAlert(pendingRides.first);
-            _speakRideDetails(pendingRides.first); // tts
+            _showRideAlert(_pendingRides.first);
+            _speakRideDetails(_pendingRides.first);
           }
         });
       }
@@ -103,10 +87,26 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _showNextRide() {
+    if (_pendingRides.isNotEmpty) {
+      _pendingRides.removeAt(0);
+      
+      // Show next ride if available
+      if (_pendingRides.isNotEmpty) {
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          if (mounted) {
+            _showRideAlert(_pendingRides.first);
+            _speakRideDetails(_pendingRides.first);
+          }
+        });
+      }
+    }
+  }
+
   void _showRideAlert(RideModel ride) {
     if (!mounted) return;
 
-    const int timeoutSeconds = 5;
+    const int timeoutSeconds = 15; // duration to show pop up
     _progress.value = 1.0; // Use .value to update ValueNotifier
 
     _timer?.cancel();
@@ -124,6 +124,8 @@ class _HomePageState extends State<HomePage> {
           _progress.value = 0;
           timer.cancel();
           Navigator.of(context).pop();
+          // Add this to show next ride after timeout
+          _showNextRide();
         }
       },
     );
@@ -134,8 +136,8 @@ class _HomePageState extends State<HomePage> {
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            // Rename setState to setDialogState for clarity
             return PopScope(
+              canPop: false, // Prevent back button from closing dialog
               child: AlertDialog(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
@@ -149,6 +151,7 @@ class _HomePageState extends State<HomePage> {
                       onPressed: () {
                         _timer?.cancel();
                         Navigator.of(context).pop();
+                        _showNextRide(); // Add this to show next ride when manually closed
                       },
                     ),
                   ],
@@ -157,15 +160,15 @@ class _HomePageState extends State<HomePage> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Distance: ${ride.details.distance}'),
-                    const SizedBox(height: 8),
-                    Text('Fare: RM ${ride.details.fare.toStringAsFixed(2)}'),
-                    const SizedBox(height: 8),
                     Text('Pick-up: ${ride.locations.start.name}'),
                     const SizedBox(height: 8),
                     Text('Drop-off: ${ride.locations.drop.name}'),
                     const SizedBox(height: 8),
                     Text('No of pax: ${ride.details.pax}'),
+                    const SizedBox(height: 8),
+                    Text('Distance: ${ride.details.distance}'),
+                    const SizedBox(height: 8),
+                    Text('Fare: RM ${ride.details.fare.toStringAsFixed(2)}'),
                     const SizedBox(height: 16),
                     ValueListenableBuilder<double>(
                       valueListenable: _progress,
@@ -197,6 +200,7 @@ class _HomePageState extends State<HomePage> {
                               _timer?.cancel();
                               _speakRideRejected(ride);
                               Navigator.of(context).pop();
+                              _showNextRide(); // Add this line to show next ride
                             },
                             child: const Text('Skip Ride'),
                           ),
@@ -243,6 +247,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _rideAccepted(RideModel ride) async {
+    // Remove the accepted ride from pending rides
+    _pendingRides.removeAt(0);
+    
     // Create origin marker from ride start location
     final origin = Marker(
       markerId: const MarkerId('origin'),
@@ -298,15 +305,15 @@ class _HomePageState extends State<HomePage> {
     switch (_selectedLanguage) {
       case 'Malay':
         message =
-            "Anda ada permintaan perjalanan baharu. Lokasi pengambilan di ${ride.locations.start.name}, dan perturunan di ${ride.locations.drop.name}. Bilangan penumpang: ${ride.details.pax}. Jarak: ${ride.details.distance} kilometer. Harga: ${ride.details.fare.toStringAsFixed(2)} ringgit. Adakah anda ingin terima?";
+            "Anda ada permintaan perjalanan baharu. Lokasi pengambilan di ${ride.locations.start.name}, dan perturunan di ${ride.locations.drop.name}. Bilangan penumpang: ${ride.details.pax}. Jarak: ${ride.details.distance}. Harga: ${ride.details.fare.toStringAsFixed(2)}. Adakah anda ingin terima?";
         break;
       case 'Chinese':
         message =
-            "您有一个新的订单请求。上车地点是${ride.locations.start.name}，下车地点是${ride.locations.drop.name}。乘客人数：${ride.details.pax}人。距离是${ride.details.distance}公里。费用是${ride.details.fare.toStringAsFixed(2)}令吉。您要接受吗？";
+            "您有一个新的订单请求。上车地点是${ride.locations.start.name}，下车地点是${ride.locations.drop.name}。乘客人数：${ride.details.pax}人。距离是${ride.details.distance}。费用是${ride.details.fare.toStringAsFixed(2)}。您要接受吗？";
         break;
       default:
         message =
-            "You have a new ride request. Pick-up at ${ride.locations.start.name}, and drop-off at ${ride.locations.drop.name}. Number of passengers: ${ride.details.pax}. Distance: ${ride.details.distance} kilometres. Fare: ${ride.details.fare.toStringAsFixed(2)} ringgit. Do you want to accept?";
+            "You have a new ride request. Pick-up at ${ride.locations.start.name}, and drop-off at ${ride.locations.drop.name}. Number of passengers: ${ride.details.pax}. Distance: ${ride.details.distance}. Fare: ${ride.details.fare.toStringAsFixed(2)}. Do you want to accept?";
     }
 
     await _flutterTts.speak(message);
@@ -322,15 +329,15 @@ class _HomePageState extends State<HomePage> {
     switch (_selectedLanguage) {
       case 'Malay':
         message =
-            "Anda telah menerima permintaan perjalanan. Lokasi pengambilan di ${ride.locations.start.name}, dan penurunan di ${ride.locations.drop.name}. Bilangan penumpang: ${ride.details.pax}. Jarak: ${ride.details.distance} kilometer. Harga: ${ride.details.fare.toStringAsFixed(2)} ringgit.";
+            "Anda telah menerima permintaan perjalanan. Lokasi pengambilan di ${ride.locations.start.name}, dan penurunan di ${ride.locations.drop.name}. Bilangan penumpang: ${ride.details.pax}. Jarak: ${ride.details.distance}. Harga: ${ride.details.fare.toStringAsFixed(2)}.";
         break;
       case 'Chinese':
         message =
-            "您已接受新的订单请求。上车地点是${ride.locations.start.name}，下车地点是${ride.locations.drop.name}。乘客人数：${ride.details.pax}人。距离是${ride.details.distance}公里。费用是${ride.details.fare.toStringAsFixed(2)}令吉。";
+            "您已接受新的订单请求。上车地点是${ride.locations.start.name}，下车地点是${ride.locations.drop.name}。乘客人数：${ride.details.pax}人。距离是${ride.details.distance}。费用是${ride.details.fare.toStringAsFixed(2)}。";
         break;
       default:
         message =
-            "You have accepted the ride request. Pick-up at ${ride.locations.start.name}, drop-off at ${ride.locations.drop.name}. Number of passengers: ${ride.details.pax}. Distance: ${ride.details.distance} kilometres. Fare: ${ride.details.fare.toStringAsFixed(2)} ringgit.";
+            "You have accepted the ride request. Pick-up at ${ride.locations.start.name}, drop-off at ${ride.locations.drop.name}. Number of passengers: ${ride.details.pax}. Distance: ${ride.details.distance}. Fare: ${ride.details.fare.toStringAsFixed(2)}.";
     }
 
     await _flutterTts.speak(message);

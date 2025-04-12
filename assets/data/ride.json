@@ -128,10 +128,7 @@
         "name": "Kek Lok Si Temple"
       }
     },
-    "driver": {
-      "id": null,
-      "name": null
-    },
+    "driver": null,
     "car": {
       "id": null,
       "name": null,
@@ -141,6 +138,57 @@
     "passenger": {
       "id": "P791",
       "name": "Alice Wong"
+    },
+    "payment": {
+      "method": "credit_card",
+      "status": "pending"
+    },
+    "rating": {
+      "driver": null,
+      "passenger": null
+    },
+    "feedback": {
+      "driver": null,
+      "passenger": null
+    }
+  },
+  {
+    "rideId": "LaDhkIr5CpbZMdp3C1GI",
+    "details": {
+      "distance": "8.0 km",
+      "fare": 35.0,
+      "pax": 2,
+      "status": "pending",
+      "orderTime": "2023-10-01T13:00:00Z",
+      "fetchTime": null,
+      "dropTime": null
+    },
+    "locations": {
+      "start": {
+        "location": {
+          "lat": 5.4300,
+          "lng": 100.3400
+        },
+        "name": "Penang International Airport"
+      },
+      "drop": {
+        "location": {
+          "lat": 5.4200,
+          "lng": 100.3300
+        },
+        "name": "Queensbay Mall"
+      }
+    },
+    "driver": null,
+    "car": {
+      "id": null,
+      "name": null,
+      "color": null,
+      "plate": null
+    },
+    "passenger": {
+      "id": "P792",
+      "name": "John Doe"
     },
     "payment": {
       "method": "credit_card",
