@@ -11,6 +11,7 @@ import 'package:grab_umh/src/modules/directions_repository.dart';
 import 'package:grab_umh/src/settings/settings_view.dart';
 import 'package:grab_umh/src/stt/speech_transcriber';
 import 'package:grab_umh/src/utils/constants/colors.dart';
+import 'package:grab_umh/src/utils/api/intent_classifier_api.dart';
 
 import 'package:flutter_tts/flutter_tts.dart'; //tts
 
@@ -49,6 +50,7 @@ class _HomePageState extends State<HomePage> {
   // Change _progress to be a ValueNotifier
   final ValueNotifier<double> _progress = ValueNotifier(1.0);
   List<RideModel>? _rides;
+  final driverResponse = "Yes, I can accept the ride";
 
   static const CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(5.285153, 100.456238),
@@ -78,12 +80,18 @@ class _HomePageState extends State<HomePage> {
 
       if (pendingRides != null && pendingRides.isNotEmpty) {
         // Show ride alert after 5 seconds
-        Future.delayed(const Duration(seconds: 2), () {
-          // TODO: change based on the intent @mjlee01
+        Future.delayed(const Duration(seconds: 2), () async {
+
           if (mounted) {
             // Check if widget is still mounted
             _showRideAlert(pendingRides.first);
             _speakRideDetails(pendingRides.first); //tts
+            
+            // TODO: change based on the intent @mjlee01
+            final detectedIntent = await detectIntent(driverResponse);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Detected intent: $detectedIntent')),
+            );
           }
         });
       }
