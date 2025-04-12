@@ -41,6 +41,7 @@ https://www.canva.com/design/DAGkbflqCYs/H-L3X4Qx_2JKKvEUUG_L9w/view?utm_content
   <img src="https://github.com/user-attachments/assets/a5e179b3-ee0e-4e5c-8696-f66e24ef73bc" alt="UI 2" width="45%"/>
 </p>
 
+
 ## 🚀 Getting Started
 
 > **Pre-requisites:**
@@ -54,11 +55,11 @@ https://www.canva.com/design/DAGkbflqCYs/H-L3X4Qx_2JKKvEUUG_L9w/view?utm_content
    cd crab-ai-assistant
    ```
 2. **Get dependencies:**
-```bash
-  flutter pub get
-  ```
+   ```bash
+   flutter pub get
+   ```
 3. **Run the app:**
-```bash
-  flutter run
-  ```
-  >⚠️ Make sure microphone permission is granted and speech-to-text is supported on the device.
+   ```bash
+   flutter run
+   ```
+>⚠️ Make sure microphone permission is granted and speech-to-text is supported on the device.
