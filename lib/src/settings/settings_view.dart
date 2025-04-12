@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
-import 'dart:convert';
 import 'settings_controller.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 /// Displays the various settings that can be customized by the user.
 ///
@@ -17,23 +15,8 @@ class SettingsView extends StatelessWidget {
 
   Future<void> _handleLogout(BuildContext context) async {
     try {
-      // Get the app's documents directory
-      final directory = await getApplicationDocumentsDirectory();
-      final file = File('${directory.path}/loginDriver.json');
+      await FirebaseAuth.instance.signOut();
 
-      // print file content
-      final content = await file.readAsString();
-      print('File content: $content');
-
-      // delete file if exists
-      if (await file.exists()) {
-        await file.delete();
-        print('File deleted successfully');
-      } else {
-        throw Exception('File does not exist');
-      }
-
-      // Navigate to login page and remove all previous routes
       if (context.mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
       }
@@ -84,9 +67,9 @@ class SettingsView extends StatelessWidget {
                 )
               ],
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Logout Button
             Center(
               child: ElevatedButton(

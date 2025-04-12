@@ -5,9 +5,7 @@ import 'package:grab_umh/src/components/component.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:grab_umh/src/models/driver_model.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:io';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -74,21 +72,7 @@ class _LoginPageState extends State<LoginPage> {
         _drivers = jsonList.map((json) => Driver.fromJson(json)).toList();
       });
     } catch (e) {
-      print('Error loading drivers: $e');
-    }
-  }
-
-  Future<void> _saveLoginDriver(Driver driver) async {
-    try {
-      final directory = await getApplicationDocumentsDirectory();
-      final file = File('${directory.path}/loginDriver.json');
-      await file.writeAsString(json.encode(driver.toJson()));
-
-      // print file content
-      final content = await file.readAsString();
-      print('File content: $content');
-    } catch (e) {
-      throw 'Error saving login driver: $e';
+      throw 'Error loading drivers: $e';
     }
   }
 
@@ -96,32 +80,6 @@ class _LoginPageState extends State<LoginPage> {
     if (_formKey.currentState!.validate()) {
       final email = _emailController.text;
       final password = _passwordController.text;
-
-      // Hardcoded password check
-      if (password != 'password123') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid password')),
-        );
-        return;
-      }
-
-      // try {
-      //   // Find driver by email
-      //   final driver = _drivers?.firstWhere(
-      //     (d) => d.email == email,
-      //   );
-
-      //   await _saveLoginDriver(driver!);
-      //   if (mounted) {
-      //     Navigator.pushReplacementNamed(context, '/home');
-      //   }
-      // } catch (e) {
-      //   if (mounted) {
-      //     ScaffoldMessenger.of(context).showSnackBar(
-      //       const SnackBar(content: Text('Driver not found')),
-      //     );
-      //   }
-      // }
 
       try {
         // Sign in with Firebase
